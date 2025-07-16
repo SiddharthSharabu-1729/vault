@@ -22,7 +22,7 @@ export type PasswordEntry = {
   username: string;
   url: string;
   category: string;
-  icon: LucideIcon;
+  icon: string;
 };
 
 export const passwordEntries: PasswordEntry[] = [
@@ -32,7 +32,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'example@gmail.com',
     url: 'google.com',
     category: 'personal',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '2',
@@ -40,7 +40,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'dev_user',
     url: 'github.com',
     category: 'work',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '3',
@@ -48,7 +48,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: '@ fortressuser',
     url: 'x.com',
     category: 'social-media',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '4',
@@ -56,7 +56,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'secure_banker',
     url: 'bankofamerica.com',
     category: 'banking',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '5',
@@ -64,7 +64,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'watcher@email.com',
     url: 'netflix.com',
     category: 'streaming',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '6',
@@ -72,7 +72,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'designer_pro',
     url: 'figma.com',
     category: 'work',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '7',
@@ -80,7 +80,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'payments@work.co',
     url: 'stripe.com',
     category: 'work',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '8',
@@ -88,7 +88,7 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'insta_user',
     url: 'instagram.com',
     category: 'social-media',
-    icon: Globe,
+    icon: 'Globe',
   },
   {
     id: '9',
@@ -96,6 +96,6 @@ export const passwordEntries: PasswordEntry[] = [
     username: 'finance_guru',
     url: 'chase.com',
     category: 'banking',
-    icon: Globe,
+    icon: 'Globe',
   },
 ];

@@ -1,6 +1,7 @@
 'use client';
 
-import { Copy, Edit, MoreVertical, Trash2 } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Globe } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,12 +20,19 @@ import {
 import type { PasswordEntry } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
+// A map to resolve icon strings to actual components
+const iconMap: { [key: string]: LucideIcon } = {
+  Globe: Globe,
+};
+
+
 interface PasswordCardProps {
   entry: PasswordEntry;
 }
 
 export function PasswordCard({ entry }: PasswordCardProps) {
   const { toast } = useToast();
+  const IconComponent = iconMap[entry.icon] || Globe; // Default to Globe if not found
 
   const handleCopy = () => {
     navigator.clipboard.writeText('••••••••••••'); // In a real app, copy the actual password
@@ -38,7 +46,7 @@ export function PasswordCard({ entry }: PasswordCardProps) {
     <Card className="flex flex-col transition-all hover:shadow-md">
       <CardHeader className="flex-row items-start gap-4 space-y-0 pb-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-          <entry.icon className="h-6 w-6 text-muted-foreground" />
+          <IconComponent className="h-6 w-6 text-muted-foreground" />
         </div>
         <div className="flex-1">
           <CardTitle className="text-lg">{entry.serviceName}</CardTitle>
