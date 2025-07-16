@@ -16,9 +16,10 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Header } from '@/components/dashboard/header';
+import withAuth from '@/components/withAuth';
 
 
-export default function DashboardPage() {
+function DashboardPage() {
   const [entries, setEntries] = useState<PasswordEntry[]>(initialPasswordEntries);
   const [filteredEntries, setFilteredEntries] = useState<PasswordEntry[]>(entries);
   const pathname = usePathname();
@@ -29,7 +30,7 @@ export default function DashboardPage() {
     const searchTerm = searchParams.get('q')?.toLowerCase() || '';
 
     const newFilteredEntries = entries.filter((entry) => {
-      const inCategory = category === 'all' || entry.category === category;
+      const inCategory = category === 'all' || entry.category.toLowerCase() === category;
       const inSearch =
         searchTerm === '' ||
         entry.serviceName.toLowerCase().includes(searchTerm) ||
@@ -105,3 +106,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+export default withAuth(DashboardPage);

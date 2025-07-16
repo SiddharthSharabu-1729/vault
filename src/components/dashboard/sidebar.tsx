@@ -1,15 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ShieldCheck, LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ShieldCheck, LogOut, LoaderCircle } from 'lucide-react';
 import { categories } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-toggle';
+import { doSignOut } from '@/services/auth';
+import React from 'react';
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await doSignOut();
+    router.push('/');
+  };
 
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-[220px] flex-col border-r bg-background sm:flex lg:w-[280px]">
@@ -23,7 +33,9 @@ export function Sidebar() {
         <nav className="flex-1 space-y-1 p-4">
           {categories.map((category) => {
              const href = `/dashboard/${category.slug === 'all' ? '' : category.slug}`;
-             const isActive = (pathname === '/dashboard' && category.slug === 'all') || pathname === href;
+             // Handle base /dashboard route and category routes
+             const isActive = (pathname === '/dashboard' && category.slug === 'all') || pathname.endsWith(`/${category.slug}`);
+
             return (
                 <Link
                 key={category.slug}
@@ -42,12 +54,10 @@ export function Sidebar() {
       </div>
       <div className="mt-auto p-4 border-t">
         <div className="flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
+            <Button onClick={handleLogout} variant="ghost" size="sm" className="w-full justify-start" disabled={isLoggingOut}>
+              {isLoggingOut ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+              {isLoggingOut ? 'Logging out...' : 'Logout'}
             </Button>
-          </Link>
           <ThemeToggle />
         </div>
       </div>

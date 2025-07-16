@@ -1,20 +1,49 @@
 'use client';
 
+import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Fingerprint, KeyRound, Mail, ShieldCheck, Smile } from 'lucide-react';
+import { Fingerprint, KeyRound, Mail, ShieldCheck, Smile, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { doSignInWithEmailAndPassword } from '@/services/auth';
+import { useToast } from '@/hooks/use-toast';
+
 
 export function LoginForm() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    if (isSigningIn) return;
+    setIsSigningIn(true);
+    try {
+      await doSignInWithEmailAndPassword(email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message || "An unknown error occurred.",
+      });
+      setIsSigningIn(false);
+    }
   };
+
+  // Dummy handlers for biometric login for now
+  const handleBiometricLogin = () => {
+    toast({
+        title: 'Feature Not Implemented',
+        description: 'Biometric authentication is coming soon!',
+      });
+  }
 
   return (
     <Card className="w-full">
@@ -28,19 +57,34 @@ export function LoginForm() {
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="email" type="email" placeholder="m@example.com" required className="pl-10" />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="m@example.com" 
+                required 
+                className="pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+               />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Master Password</Label>
             <div className="relative">
               <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="password" type="password" required className="pl-10" />
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                className="pl-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            Unlock Vault
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isSigningIn}>
+            {isSigningIn ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+            {isSigningIn ? 'Unlocking...' : 'Unlock Vault'}
           </Button>
         </form>
         <div className="relative my-6">
@@ -50,11 +94,11 @@ export function LoginForm() {
           </span>
         </div>
         <div className="space-y-3">
-          <Button variant="outline" className="w-full" onClick={() => router.push('/dashboard')}>
+          <Button variant="outline" className="w-full" onClick={handleBiometricLogin}>
             <Fingerprint className="mr-2 h-4 w-4 text-primary" />
             Sign in with Fingerprint
           </Button>
-          <Button variant="outline" className="w-full" onClick={() => router.push('/dashboard')}>
+          <Button variant="outline" className="w-full" onClick={handleBiometricLogin}>
             <Smile className="mr-2 h-4 w-4 text-primary" />
             Sign in with Face ID
           </Button>
@@ -62,7 +106,7 @@ export function LoginForm() {
       </CardContent>
       <CardFooter>
         <p className="text-xs text-muted-foreground text-center w-full">
-          Don&apos;t have an account? <a href="#" className="text-primary hover:underline">Sign up</a>
+          Don&apos;t have an account? <Link href="/signup" className="text-primary hover:underline">Sign up</Link>
         </p>
       </CardFooter>
     </Card>

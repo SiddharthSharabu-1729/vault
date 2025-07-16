@@ -1,7 +1,20 @@
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { LoginForm } from '@/components/auth/login-form';
+import { useAuth } from '@/contexts/authContext';
 import { ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
+  const { userLoggedIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (userLoggedIn) {
+      router.push('/dashboard');
+    }
+  }, [userLoggedIn, router]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
