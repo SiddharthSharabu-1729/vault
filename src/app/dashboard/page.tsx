@@ -100,7 +100,11 @@ function DashboardPage() {
     try {
       const newEntry = await addEntry(currentUser.uid, newEntryData);
       setEntries((prev) => [newEntry, ...prev]);
-      await fetchAllData();
+      toast({
+        title: 'Entry Added',
+        description: `${newEntry.serviceName} has been saved to your vault.`,
+      });
+      await fetchAllData(); // Re-fetch all data to ensure consistency
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -115,10 +119,11 @@ function DashboardPage() {
     const { id, ...dataToUpdate } = updatedEntry;
     try {
       await updateEntry(currentUser.uid, id, dataToUpdate);
-      setEntries((prev) =>
-        prev.map((entry) => (entry.id === id ? updatedEntry : entry))
-      );
-       await fetchAllData();
+       toast({
+        title: 'Entry Updated',
+        description: `${updatedEntry.serviceName} has been updated.`,
+      });
+       await fetchAllData(); // Re-fetch all data
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -132,6 +137,10 @@ function DashboardPage() {
     if (!currentUser) return;
     try {
       await deleteEntry(currentUser.uid, id);
+       toast({
+        title: 'Entry Deleted',
+        description: `The entry has been removed from your vault.`,
+      });
       setEntries((prev) => prev.filter((entry) => entry.id !== id));
     } catch (error) {
       toast({
@@ -150,10 +159,10 @@ function DashboardPage() {
   }
 
   return (
-    <>
+    <div className="flex min-h-screen w-full bg-muted/40">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={loading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header categories={categories} onAddCategory={handleAddCategory} loading={loading} />
+        <Header />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
             <Card>
@@ -203,7 +212,7 @@ function DashboardPage() {
           </div>
         </main>
       </div>
-    </>
+    </div>
   );
 }
 
