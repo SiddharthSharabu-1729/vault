@@ -8,67 +8,27 @@ import { iconMap } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { doSignOut } from '@/services/auth';
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/authContext';
-import { getCategories, addCategory } from '@/services/firestore';
+import React, { useState } from 'react';
 import { CategoryCreator } from './category-creator';
-import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from './theme-toggle';
 
+interface SidebarMobileProps {
+  categories: Category[];
+  onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
+  loading: boolean;
+}
 
-export function SidebarMobile() {
+export function SidebarMobile({ categories, onAddCategory, loading }: SidebarMobileProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser } = useAuth();
-  const { toast } = useToast();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-
-  const fetchCategories = useCallback(async () => {
-    if (!currentUser) return;
-    setLoadingCategories(true);
-    try {
-        const userCategories = await getCategories(currentUser.uid);
-        setCategories(userCategories);
-    } catch(error) {
-        console.error("Error fetching categories:", error);
-    } finally {
-        setLoadingCategories(false);
-    }
-  }, [currentUser]);
-
-  useEffect(() => {
-    if (currentUser) {
-        fetchCategories();
-    }
-  }, [currentUser, fetchCategories]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await doSignOut();
     router.push('/');
   };
-
-  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
-    if (!currentUser) return;
-    try {
-      await addCategory(currentUser.uid, newCategoryData);
-      toast({
-          title: 'Category Created',
-          description: `${newCategoryData.name} has been added.`,
-      });
-      fetchCategories();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create new category.',
-      });
-    }
-  };
-
 
   const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
 
@@ -84,7 +44,7 @@ export function SidebarMobile() {
         </Link>
         
         <div className="px-2.5">
-            <CategoryCreator onAddCategory={handleAddCategory}>
+            <CategoryCreator onAddCategory={onAddCategory}>
                 <Button variant="ghost" className="w-full justify-start text-muted-foreground">
                 <PlusCircle className="mr-2 h-5 w-5" />
                 New Category
@@ -92,7 +52,7 @@ export function SidebarMobile() {
             </CategoryCreator>
         </div>
 
-        {loadingCategories ? (
+        {loading ? (
              Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4 px-2.5 animate-pulse">
                     <div className="h-5 w-5 bg-muted rounded" />

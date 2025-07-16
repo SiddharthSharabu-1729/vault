@@ -18,7 +18,7 @@ import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
-import { getEntries, addEntry, updateEntry, deleteEntry, getCategories } from '@/services/firestore';
+import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 function DashboardPage() {
@@ -56,8 +56,10 @@ function DashboardPage() {
   }, [currentUser, toast]);
 
   useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+    if (currentUser) {
+      fetchAllData();
+    }
+  }, [currentUser, fetchAllData]);
 
   useEffect(() => {
     const categorySlug = pathname.split('/')[2] || 'all';
@@ -74,13 +76,30 @@ function DashboardPage() {
 
     setFilteredEntries(newFilteredEntries);
   }, [pathname, entries, searchParams]);
+  
+  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
+    if (!currentUser) return;
+    try {
+      await addCategory(currentUser.uid, newCategoryData);
+      toast({
+          title: 'Category Created',
+          description: `${newCategoryData.name} has been added.`,
+      });
+      await fetchAllData();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create new category.',
+      });
+    }
+  };
 
   const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>) => {
     if (!currentUser) return;
     try {
       const newEntry = await addEntry(currentUser.uid, newEntryData);
       setEntries((prev) => [newEntry, ...prev]);
-      // Also refetch categories in case a new one was implicitly used
       await fetchAllData();
     } catch (error) {
       toast({
@@ -130,16 +149,11 @@ function DashboardPage() {
     return category ? category.name : 'Vault Entries';
   }
 
-  const handleCategoryChange = async () => {
-     if (!currentUser) return;
-     await fetchAllData();
-  };
-
   return (
     <>
-      <Sidebar categories={categories} onCategoryChanged={handleCategoryChange} />
+      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={loading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header />
+        <Header categories={categories} onAddCategory={handleAddCategory} loading={loading} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
             <Card>

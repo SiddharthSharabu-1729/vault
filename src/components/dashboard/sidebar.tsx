@@ -9,23 +9,18 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-toggle';
 import { doSignOut } from '@/services/auth';
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/authContext';
-import { addCategory } from '@/services/firestore';
+import React, { useState } from 'react';
 import { CategoryCreator } from './category-creator';
-import { useToast } from '@/hooks/use-toast';
 
 interface SidebarProps {
     categories: Category[];
-    onCategoryChanged: () => void;
+    onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
+    loading: boolean;
 }
 
-export function Sidebar({ categories, onCategoryChanged }: SidebarProps) {
+export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser } = useAuth();
-  const { toast } = useToast();
-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -34,27 +29,7 @@ export function Sidebar({ categories, onCategoryChanged }: SidebarProps) {
     router.push('/');
   };
 
-  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
-    if (!currentUser) return;
-    try {
-      await addCategory(currentUser.uid, newCategoryData);
-      toast({
-          title: 'Category Created',
-          description: `${newCategoryData.name} has been added.`,
-      });
-      onCategoryChanged();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create new category.',
-      });
-    }
-  };
-
-
   const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
-
 
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-[220px] flex-col border-r bg-background sm:flex lg:w-[280px]">
@@ -67,14 +42,14 @@ export function Sidebar({ categories, onCategoryChanged }: SidebarProps) {
         </div>
         <nav className="flex-1 space-y-1 p-4">
           <div className="mb-2">
-              <CategoryCreator onAddCategory={handleAddCategory}>
+              <CategoryCreator onAddCategory={onAddCategory}>
                   <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-primary">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     New Category
                   </Button>
               </CategoryCreator>
           </div>
-          {categories.length === 0 ? (
+          {loading ? (
              Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 animate-pulse">
                     <div className="h-4 w-4 bg-muted rounded" />

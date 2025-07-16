@@ -1,12 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import {
   Menu,
   Search,
-  ShieldCheck,
 } from 'lucide-react';
-
+import type { Category } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -18,7 +16,13 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ThemeToggle } from './theme-toggle';
 import { SidebarMobile } from './sidebar-mobile';
 
-export function Header() {
+interface HeaderProps {
+    categories: Category[];
+    onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
+    loading: boolean;
+}
+
+export function Header({ categories, onAddCategory, loading }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -43,7 +47,11 @@ export function Header() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="sm:max-w-xs">
-           <SidebarMobile />
+           <SidebarMobile 
+              categories={categories}
+              onAddCategory={onAddCategory}
+              loading={loading}
+           />
         </SheetContent>
       </Sheet>
       <div className="relative flex-1 md:grow-0">
