@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Copy, RefreshCw } from 'lucide-react';
+import { Copy, RefreshCw, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,20 +11,63 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import type { PasswordEntry } from '@/lib/data';
+import { categories } from '@/lib/data';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-export function PasswordGenerator({ children }: { children: React.ReactNode }) {
-  const [length, setLength] = useState(16);
+interface PasswordGeneratorProps {
+  children: React.ReactNode;
+  onAddEntry: (newEntry: Omit<PasswordEntry, 'id'>) => void;
+  entry?: PasswordEntry;
+}
+
+export function PasswordGenerator({
+  children,
+  onAddEntry,
+  entry,
+}: PasswordGeneratorProps) {
+  const [open, setOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(!!entry);
+
+  const [length, setLength] = useState(entry ? entry.password.length : 16);
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(true);
-  const [password, setPassword] = useState('');
+  
+  const [password, setPassword] = useState(entry ? entry.password : '');
+  const [serviceName, setServiceName] = useState(entry ? entry.serviceName : '');
+  const [username, setUsername] = useState(entry ? entry.username : '');
+  const [url, setUrl] = useState(entry ? entry.url : '');
+  const [category, setCategory] = useState(entry ? entry.category : 'personal');
+  
   const { toast } = useToast();
+  
+  const resetForm = () => {
+    if (!isEditing) {
+        setServiceName('');
+        setUsername('');
+        setUrl('');
+        setCategory('personal');
+        setLength(16);
+        setIncludeUppercase(true);
+        setIncludeNumbers(true);
+        setIncludeSymbols(true);
+    }
+  };
+
 
   const generatePassword = useCallback(() => {
     const lowerCharset = 'abcdefghijklmnopqrstuvwxyz';
@@ -36,10 +79,10 @@ export function PasswordGenerator({ children }: { children: React.ReactNode }) {
     if (includeUppercase) charset += upperCharset;
     if (includeNumbers) charset += numberCharset;
     if (includeSymbols) charset += symbolCharset;
-    
-    if(charset.length === 0) {
-        setPassword('');
-        return;
+
+    if (charset.length === 0) {
+      setPassword('');
+      return;
     }
 
     let newPassword = '';
@@ -50,11 +93,13 @@ export function PasswordGenerator({ children }: { children: React.ReactNode }) {
   }, [length, includeUppercase, includeNumbers, includeSymbols]);
 
   useEffect(() => {
-    generatePassword();
-  }, [generatePassword]);
-  
+    if (!isEditing) {
+        generatePassword();
+    }
+  }, [generatePassword, isEditing]);
+
   const handleCopy = () => {
-    if(password){
+    if (password) {
       navigator.clipboard.writeText(password);
       toast({
         title: 'Password Copied',
@@ -63,32 +108,113 @@ export function PasswordGenerator({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleSave = () => {
+    if (!serviceName || !username || !password) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Fields',
+        description: 'Please fill in Service Name, Username, and generate a password.',
+      });
+      return;
+    }
+
+    const newEntry = {
+      serviceName,
+      username,
+      url,
+      category,
+      password,
+      icon: 'Globe',
+    };
+    
+    // In a real app, this would be an update call if entry exists
+    onAddEntry(newEntry);
+
+    toast({
+      title: isEditing ? 'Entry Updated' : 'Entry Added',
+      description: `${serviceName} has been saved to your vault.`,
+    });
+    
+    setOpen(false);
+  };
+  
+  useEffect(() => {
+      if(!open) {
+          resetForm();
+      }
+  }, [open]);
+
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Password Generator</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Entry' : 'Add New Entry'}</DialogTitle>
           <DialogDescription>
-            Create a strong, unique password for your accounts.
+            {isEditing ? 'Update the details for this entry.' : 'Create a strong, unique password for a new account.'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="relative">
+          <div className="space-y-2">
+            <Label htmlFor="serviceName">Service Name</Label>
             <Input
-              id="password"
-              value={password}
-              readOnly
-              className="pr-20 font-mono text-lg"
+              id="serviceName"
+              value={serviceName}
+              onChange={(e) => setServiceName(e.target.value)}
+              placeholder="e.g. Google"
             />
-            <div className="absolute inset-y-0 right-0 flex items-center">
-              <Button variant="ghost" size="icon" onClick={generatePassword}>
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-               <Button variant="ghost" size="icon" onClick={handleCopy}>
-                <Copy className="h-4 w-4" />
-              </Button>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="username">Username / Email</Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g. user@example.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="url">URL (optional)</Label>
+            <Input
+              id="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="e.g. google.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.filter(c => c.slug !== 'all').map((cat) => (
+                  <SelectItem key={cat.slug} value={cat.slug}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Generated Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                value={password}
+                readOnly
+                className="pr-20 font-mono text-base"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center">
+                <Button variant="ghost" size="icon" onClick={generatePassword}>
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleCopy}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
           <div className="space-y-4">
@@ -108,23 +234,40 @@ export function PasswordGenerator({ children }: { children: React.ReactNode }) {
             />
           </div>
           <div className="space-y-3">
-             <div className="flex items-center justify-between">
-                <Label htmlFor="uppercase">Include Uppercase (A-Z)</Label>
-                <Switch id="uppercase" checked={includeUppercase} onCheckedChange={setIncludeUppercase} />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="uppercase">Include Uppercase (A-Z)</Label>
+              <Switch
+                id="uppercase"
+                checked={includeUppercase}
+                onCheckedChange={setIncludeUppercase}
+              />
             </div>
-             <div className="flex items-center justify-between">
-                <Label htmlFor="numbers">Include Numbers (0-9)</Label>
-                <Switch id="numbers" checked={includeNumbers} onCheckedChange={setIncludeNumbers} />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="numbers">Include Numbers (0-9)</Label>
+              <Switch
+                id="numbers"
+                checked={includeNumbers}
+                onCheckedChange={setIncludeNumbers}
+              />
             </div>
-             <div className="flex items-center justify-between">
-                <Label htmlFor="symbols">Include Symbols (!@#$..)</Label>
-                <Switch id="symbols" checked={includeSymbols} onCheckedChange={setIncludeSymbols} />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="symbols">Include Symbols (!@#$..)</Label>
+              <Switch
+                id="symbols"
+                checked={includeSymbols}
+                onCheckedChange={setIncludeSymbols}
+              />
             </div>
           </div>
         </div>
         <DialogFooter>
-          {/* In a real app, this might save the entry */}
-          <Button className="w-full">Use this Password</Button>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Entry
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

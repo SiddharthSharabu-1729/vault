@@ -1,17 +1,50 @@
-import { PasswordGenerator } from "@/components/dashboard/password-generator";
-import { PasswordCard } from "@/components/dashboard/password-card";
-import { passwordEntries } from "@/lib/data";
-import { PlusCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { PasswordGenerator } from '@/components/dashboard/password-generator';
+import { PasswordCard } from '@/components/dashboard/password-card';
+import { passwordEntries as initialPasswordEntries } from '@/lib/data';
+import type { PasswordEntry } from '@/lib/data';
+import { PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 
 export default function DashboardPage() {
+  const [entries, setEntries] = useState<PasswordEntry[]>(initialPasswordEntries);
+  const [filteredEntries, setFilteredEntries] = useState<PasswordEntry[]>(entries);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const category = pathname.split('/')[2];
+    if (category && category !== 'all') {
+      setFilteredEntries(entries.filter((entry) => entry.category === category));
+    } else {
+      setFilteredEntries(entries);
+    }
+  }, [pathname, entries]);
+
+  const addEntry = (newEntry: Omit<PasswordEntry, 'id'>) => {
+    const entry: PasswordEntry = { ...newEntry, id: Date.now().toString() };
+    setEntries((prev) => [entry, ...prev]);
+  };
+
+  const updateEntry = (updatedEntry: PasswordEntry) => {
+    setEntries((prev) =>
+      prev.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry))
+    );
+  };
+
+  const deleteEntry = (id: string) => {
+    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
   return (
     <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
       <Card>
@@ -23,7 +56,7 @@ export default function DashboardPage() {
                 Manage your saved passwords and sensitive information.
               </CardDescription>
             </div>
-            <PasswordGenerator>
+            <PasswordGenerator onAddEntry={addEntry}>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New
@@ -32,10 +65,15 @@ export default function DashboardPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {passwordEntries.length > 0 ? (
+          {filteredEntries.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {passwordEntries.map((entry) => (
-                <PasswordCard key={entry.id} entry={entry} />
+              {filteredEntries.map((entry) => (
+                <PasswordCard
+                  key={entry.id}
+                  entry={entry}
+                  onUpdateEntry={updateEntry}
+                  onDeleteEntry={deleteEntry}
+                />
               ))}
             </div>
           ) : (

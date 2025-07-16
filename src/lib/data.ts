@@ -23,6 +23,7 @@ export type PasswordEntry = {
   url: string;
   category: string;
   icon: string;
+  password: string;
 };
 
 export const passwordEntries: PasswordEntry[] = [
@@ -33,6 +34,7 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'google.com',
     category: 'personal',
     icon: 'Globe',
+    password: 'super-secret-password-1'
   },
   {
     id: '2',
@@ -41,14 +43,16 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'github.com',
     category: 'work',
     icon: 'Globe',
+    password: 'super-secret-password-2'
   },
   {
     id: '3',
     serviceName: 'Twitter / X',
-    username: '@ fortressuser',
+    username: '@fortressuser',
     url: 'x.com',
     category: 'social-media',
     icon: 'Globe',
+    password: 'super-secret-password-3'
   },
   {
     id: '4',
@@ -57,6 +61,7 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'bankofamerica.com',
     category: 'banking',
     icon: 'Globe',
+    password: 'super-secret-password-4'
   },
   {
     id: '5',
@@ -65,6 +70,7 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'netflix.com',
     category: 'streaming',
     icon: 'Globe',
+    password: 'super-secret-password-5'
   },
   {
     id: '6',
@@ -73,6 +79,7 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'figma.com',
     category: 'work',
     icon: 'Globe',
+    password: 'super-secret-password-6'
   },
   {
     id: '7',
@@ -81,6 +88,7 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'stripe.com',
     category: 'work',
     icon: 'Globe',
+    password: 'super-secret-password-7'
   },
   {
     id: '8',
@@ -89,6 +97,7 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'instagram.com',
     category: 'social-media',
     icon: 'Globe',
+    password: 'super-secret-password-8'
   },
   {
     id: '9',
@@ -97,5 +106,6 @@ export const passwordEntries: PasswordEntry[] = [
     url: 'chase.com',
     category: 'banking',
     icon: 'Globe',
+    password: 'super-secret-password-9'
   },
 ];
