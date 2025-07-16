@@ -23,6 +23,7 @@ export async function createDefaultCategories(userId: string) {
 export async function getCategories(userId: string): Promise<Category[]> {
     const currentUser = auth.currentUser;
     if (!currentUser || currentUser.uid !== userId) {
+        console.error("Permission denied: User is not authenticated or does not match.");
         return [];
     }
     const categoriesCollection = collection(db, 'users', userId, 'categories');
@@ -32,6 +33,10 @@ export async function getCategories(userId: string): Promise<Category[]> {
 }
 
 export async function addCategory(userId: string, categoryData: Omit<Category, 'id'>): Promise<Category> {
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.uid !== userId) {
+        throw new Error("Permission denied: User is not authenticated or does not match for adding category.");
+    }
     const categoriesCollection = collection(db, 'users', userId, 'categories');
     const docRef = await addDoc(categoriesCollection, categoryData);
     return { ...categoryData, id: docRef.id };
@@ -42,6 +47,7 @@ export async function addCategory(userId: string, categoryData: Omit<Category, '
 export async function getEntries(userId: string): Promise<PasswordEntry[]> {
     const currentUser = auth.currentUser;
     if (!currentUser || currentUser.uid !== userId) {
+        console.error("Permission denied: User is not authenticated or does not match.");
         return [];
     }
     const entriesCollection = collection(db, 'users', userId, 'entries');
@@ -51,17 +57,29 @@ export async function getEntries(userId: string): Promise<PasswordEntry[]> {
 }
 
 export async function addEntry(userId: string, entryData: Omit<PasswordEntry, 'id'>): Promise<PasswordEntry> {
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.uid !== userId) {
+        throw new Error("Permission denied: User is not authenticated or does not match for adding entry.");
+    }
     const entriesCollection = collection(db, 'users', userId, 'entries');
     const docRef = await addDoc(entriesCollection, entryData);
     return { ...entryData, id: docRef.id };
 }
 
 export async function updateEntry(userId: string, entryId: string, entryData: Partial<Omit<PasswordEntry, 'id'>>) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.uid !== userId) {
+        throw new Error("Permission denied: User is not authenticated or does not match for updating entry.");
+    }
     const entryRef = doc(db, 'users', userId, 'entries', entryId);
     await updateDoc(entryRef, entryData);
 }
 
 export async function deleteEntry(userId: string, entryId: string) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.uid !== userId) {
+        throw new Error("Permission denied: User is not authenticated or does not match for deleting entry.");
+    }
     const entryRef = doc(db, 'users', userId, 'entries', entryId);
     await deleteDoc(entryRef);
 }

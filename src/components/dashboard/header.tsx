@@ -1,8 +1,12 @@
 'use client';
 
+import React, { useState } from 'react';
 import {
   Menu,
   Search,
+  LogOut,
+  LoaderCircle,
+  User as UserIcon,
 } from 'lucide-react';
 import type { Category } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -11,10 +15,20 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ThemeToggle } from './theme-toggle';
 import { SidebarMobile } from './sidebar-mobile';
+import { useAuth } from '@/contexts/authContext';
+import { doSignOut } from '@/services/auth';
 
 interface HeaderProps {
     categories: Category[];
@@ -26,6 +40,14 @@ export function Header({ categories, onAddCategory, loading }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { currentUser } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await doSignOut();
+    router.push('/');
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const params = new URLSearchParams(searchParams);
@@ -64,8 +86,33 @@ export function Header({ categories, onAddCategory, loading }: HeaderProps) {
           defaultValue={searchParams.get('q') ?? ''}
         />
       </div>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
          <ThemeToggle />
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="overflow-hidden rounded-full"
+                >
+                    <UserIcon className="h-5 w-5" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>{currentUser?.email}</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                    {isLoggingOut ? (
+                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <LogOut className="mr-2 h-4 w-4" />
+                    )}
+                    {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

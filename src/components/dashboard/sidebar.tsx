@@ -2,14 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShieldCheck, LogOut, LoaderCircle, LayoutGrid, PlusCircle, type Icon } from 'lucide-react';
+import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, type Icon } from 'lucide-react';
 import type { Category } from '@/lib/data';
 import { iconMap } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from './theme-toggle';
-import { doSignOut } from '@/services/auth';
-import React, { useState } from 'react';
+import React from 'react';
 import { CategoryCreator } from './category-creator';
 
 interface SidebarProps {
@@ -20,14 +18,6 @@ interface SidebarProps {
 
 export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    await doSignOut();
-    router.push('/');
-  };
 
   const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
 
@@ -78,15 +68,6 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
             })
           )}
         </nav>
-      </div>
-      <div className="mt-auto p-4 border-t">
-        <div className="flex items-center justify-between">
-            <Button onClick={handleLogout} variant="ghost" size="sm" className="w-full justify-start" disabled={isLoggingOut}>
-              {isLoggingOut ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-              {isLoggingOut ? 'Logging out...' : 'Logout'}
-            </Button>
-          <ThemeToggle />
-        </div>
       </div>
     </aside>
   );
