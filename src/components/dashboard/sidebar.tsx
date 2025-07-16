@@ -9,45 +9,24 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-toggle';
 import { doSignOut } from '@/services/auth';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/authContext';
-import { getCategories, addCategory } from '@/services/firestore';
+import { addCategory } from '@/services/firestore';
 import { CategoryCreator } from './category-creator';
 import { useToast } from '@/hooks/use-toast';
 
-export function Sidebar() {
+interface SidebarProps {
+    categories: Category[];
+    onCategoryChanged: () => void;
+}
+
+export function Sidebar({ categories, onCategoryChanged }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-
-  const fetchCategories = useCallback(async () => {
-    if (!currentUser) return;
-    setLoadingCategories(true);
-    try {
-        const userCategories = await getCategories(currentUser.uid);
-        setCategories(userCategories);
-    } catch(error) {
-        console.error("Error fetching categories:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not load categories.',
-        });
-    } finally {
-        setLoadingCategories(false);
-    }
-  }, [currentUser, toast]);
-
-  useEffect(() => {
-    if (currentUser) {
-        fetchCategories();
-    }
-  }, [currentUser, fetchCategories]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -63,7 +42,7 @@ export function Sidebar() {
           title: 'Category Created',
           description: `${newCategoryData.name} has been added.`,
       });
-      fetchCategories(); // Re-fetch categories to show the new one
+      onCategoryChanged();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -95,8 +74,8 @@ export function Sidebar() {
                   </Button>
               </CategoryCreator>
           </div>
-          {loadingCategories ? (
-             Array.from({ length: 3 }).map((_, i) => (
+          {categories.length === 0 ? (
+             Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 animate-pulse">
                     <div className="h-4 w-4 bg-muted rounded" />
                     <div className="h-4 w-2/3 bg-muted rounded" />

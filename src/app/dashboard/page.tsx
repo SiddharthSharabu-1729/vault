@@ -15,6 +15,7 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Header } from '@/components/dashboard/header';
+import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
 import { getEntries, addEntry, updateEntry, deleteEntry, getCategories } from '@/services/firestore';
@@ -55,10 +56,8 @@ function DashboardPage() {
   }, [currentUser, toast]);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchAllData();
-    }
-  }, [currentUser, fetchAllData]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   useEffect(() => {
     const categorySlug = pathname.split('/')[2] || 'all';
@@ -82,8 +81,7 @@ function DashboardPage() {
       const newEntry = await addEntry(currentUser.uid, newEntryData);
       setEntries((prev) => [newEntry, ...prev]);
       // Also refetch categories in case a new one was implicitly used
-      const userCategories = await getCategories(currentUser.uid);
-      setCategories(userCategories);
+      await fetchAllData();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -101,6 +99,7 @@ function DashboardPage() {
       setEntries((prev) =>
         prev.map((entry) => (entry.id === id ? updatedEntry : entry))
       );
+       await fetchAllData();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -131,64 +130,65 @@ function DashboardPage() {
     return category ? category.name : 'Vault Entries';
   }
 
-  const handleCategoryCreated = async () => {
-    if (!currentUser) return;
-    const userCategories = await getCategories(currentUser.uid);
-    setCategories(userCategories);
+  const handleCategoryChange = async () => {
+     if (!currentUser) return;
+     await fetchAllData();
   };
-
 
   return (
     <>
-      <Header categories={categories} onCategoryCreated={handleCategoryCreated} />
-      <main className="flex-1 p-4 sm:p-6">
-        <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{getPageTitle()}</CardTitle>
-                  <CardDescription>
-                    Manage your saved passwords and sensitive information.
-                  </CardDescription>
+      <Sidebar categories={categories} onCategoryChanged={handleCategoryChange} />
+      <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
+        <Header />
+        <main className="flex-1 p-4 sm:p-6">
+          <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>{getPageTitle()}</CardTitle>
+                    <CardDescription>
+                      Manage your saved passwords and sensitive information.
+                    </CardDescription>
+                  </div>
+                  <PasswordGenerator onAddEntry={handleAddEntry} categories={categories}>
+                    <Button>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add New
+                    </Button>
+                  </PasswordGenerator>
                 </div>
-                <PasswordGenerator onAddEntry={handleAddEntry} categories={categories}>
-                  <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add New
-                  </Button>
-                </PasswordGenerator>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : filteredEntries.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredEntries.map((entry) => (
-                    <PasswordCard
-                      key={entry.id}
-                      entry={entry}
-                      onUpdateEntry={handleUpdateEntry}
-                      onDeleteEntry={handleDeleteEntry}
-                      categories={categories}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <h3 className="text-lg font-medium">No entries yet</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Click &quot;Add New&quot; to secure your first password.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : filteredEntries.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredEntries.map((entry) => (
+                      <PasswordCard
+                        key={entry.id}
+                        entry={entry}
+                        onUpdateEntry={handleUpdateEntry}
+                        onDeleteEntry={handleDeleteEntry}
+                        categories={categories}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">No entries yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Click &quot;Add New&quot; to secure your first password.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
     </>
   );
 }
