@@ -18,8 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import type { PasswordEntry } from '@/lib/data';
-import { categories } from '@/lib/data';
+import type { PasswordEntry, Category } from '@/lib/data';
 import {
   Select,
   SelectContent,
@@ -33,12 +32,14 @@ interface PasswordGeneratorProps {
   children: React.ReactNode;
   onAddEntry: (newEntry: Omit<PasswordEntry, 'id'>) => void;
   entry?: PasswordEntry;
+  categories: Category[];
 }
 
 export function PasswordGenerator({
   children,
   onAddEntry,
   entry,
+  categories
 }: PasswordGeneratorProps) {
   const [open, setOpen] = useState(false);
   const isEditing = !!entry;
@@ -52,7 +53,7 @@ export function PasswordGenerator({
   const [serviceName, setServiceName] = useState(entry ? entry.serviceName : '');
   const [username, setUsername] = useState(entry ? entry.username : '');
   const [url, setUrl] = useState(entry ? entry.url ?? '' : '');
-  const [category, setCategory] = useState(entry ? entry.category : 'personal');
+  const [category, setCategory] = useState(entry ? entry.category : (categories[0]?.slug || ''));
   const [icon, setIcon] = useState(entry ? entry.icon : 'Globe');
 
   const [isSaving, setIsSaving] = useState(false);
@@ -60,19 +61,28 @@ export function PasswordGenerator({
   const { toast } = useToast();
   
   const resetForm = useCallback(() => {
+    const defaultCategory = categories[0]?.slug || '';
     if (!isEditing) {
         setServiceName('');
         setUsername('');
         setUrl('');
-        setCategory('personal');
+        setCategory(defaultCategory);
         setLength(16);
         setIncludeUppercase(true);
         setIncludeNumbers(true);
         setIncludeSymbols(true);
         setIcon('Globe');
         setPassword('');
+    } else if (entry) {
+        setServiceName(entry.serviceName);
+        setUsername(entry.username);
+        setUrl(entry.url ?? '');
+        setCategory(entry.category);
+        setPassword(entry.password);
+        setIcon(entry.icon);
+        setLength(entry.password.length);
     }
-  }, [isEditing]);
+  }, [isEditing, entry, categories]);
 
 
   const generatePassword = useCallback(() => {
@@ -102,7 +112,10 @@ export function PasswordGenerator({
     if (open && !isEditing) {
         generatePassword();
     }
-  }, [generatePassword, isEditing, open]);
+    if (open) {
+        resetForm();
+    }
+  }, [generatePassword, isEditing, open, resetForm]);
 
   const handleCopy = () => {
     if (password) {
@@ -115,17 +128,17 @@ export function PasswordGenerator({
   };
 
   const handleSave = async () => {
-    if (!serviceName || !username || !password) {
+    if (!serviceName || !username || !password || !category) {
       toast({
         variant: 'destructive',
         title: 'Missing Fields',
-        description: 'Please fill in Service Name, Username, and generate a password.',
+        description: 'Please fill in all required fields.',
       });
       return;
     }
     setIsSaving(true);
     let finalIcon = icon;
-    if (url) {
+    if (url && (!isEditing || url !== entry?.url)) {
       try {
         const result = await getIconForUrl({ url });
         finalIcon = result.iconName;
@@ -207,7 +220,7 @@ export function PasswordGenerator({
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.filter(c => c.slug !== 'all').map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat.slug} value={cat.slug}>
                     {cat.name}
                   </SelectItem>

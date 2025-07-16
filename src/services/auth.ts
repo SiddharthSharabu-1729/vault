@@ -8,9 +8,14 @@ import {
   onAuthStateChanged,
   type User
 } from 'firebase/auth';
+import { createDefaultCategories } from './firestore';
 
-export const doCreateUserWithEmailAndPassword = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+export const doCreateUserWithEmailAndPassword = async (email, password) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    if (userCredential.user) {
+        await createDefaultCategories(userCredential.user.uid);
+    }
+    return userCredential;
 }
 
 export const doSignInWithEmailAndPassword = (email, password) => {

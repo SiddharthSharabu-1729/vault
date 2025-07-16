@@ -5,7 +5,9 @@ import {
   Menu,
   Search,
   ShieldCheck,
+  LayoutGrid
 } from 'lucide-react';
+import type { Icon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -14,12 +16,17 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
-import { categories } from '@/lib/data';
+import type { Category } from '@/lib/data';
+import { iconMap } from '@/lib/data';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 
-export function Header() {
+interface HeaderProps {
+    categories: Category[];
+}
+
+export function Header({ categories }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -33,6 +40,8 @@ export function Header() {
     }
     router.replace(`${pathname}?${params.toString()}`);
   };
+
+  const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
 
 
   return (
@@ -53,19 +62,22 @@ export function Header() {
               <ShieldCheck className="h-5 w-5 transition-all group-hover:scale-110" />
               <span className="sr-only">Fortress Vault</span>
             </Link>
-            {categories.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/dashboard/${category.slug === 'all' ? '' : category.slug}`}
-                className={cn(
-                  'flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground',
-                  (pathname === `/dashboard` && category.slug === 'all') || pathname === `/dashboard/${category.slug}` ? 'text-foreground' : ''
-                )}
-              >
-                <category.icon className="h-5 w-5" />
-                {category.name}
-              </Link>
-            ))}
+            {allCategories.map((category) => {
+              const IconComponent = (iconMap[category.icon] || LayoutGrid) as Icon;
+              return (
+                <Link
+                  key={category.slug}
+                  href={`/dashboard/${category.slug === 'all' ? '' : category.slug}`}
+                  className={cn(
+                    'flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground',
+                    (pathname === `/dashboard` && category.slug === 'all') || pathname === `/dashboard/${category.slug}` ? 'text-foreground' : ''
+                  )}
+                >
+                  <IconComponent className="h-5 w-5" />
+                  {category.name}
+                </Link>
+              )
+            })}
              <div className="absolute bottom-4 left-4">
                 <ThemeToggle />
              </div>

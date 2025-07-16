@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Copy, Edit, MoreVertical, Trash2, Globe, Check, Eye, EyeOff } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon, Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,23 +30,22 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-import type { PasswordEntry } from '@/lib/data';
+import type { PasswordEntry, Category } from '@/lib/data';
+import { iconMap } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordGenerator } from './password-generator';
 
-const iconMap: { [key: string]: LucideIcon } = {
-  Globe: Globe,
-};
 
 interface PasswordCardProps {
   entry: PasswordEntry;
   onUpdateEntry: (updatedEntry: PasswordEntry) => void;
   onDeleteEntry: (id: string) => void;
+  categories: Category[];
 }
 
-export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry }: PasswordCardProps) {
+export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }: PasswordCardProps) {
   const { toast } = useToast();
-  const IconComponent = iconMap[entry.icon] || Globe;
+  const IconComponent = (iconMap[entry.icon] || Globe) as Icon;
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -60,8 +59,8 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry }: PasswordCa
     setTimeout(() => setCopied(false), 2000);
   };
   
-  const handleUpdate = (updatedEntry: Omit<PasswordEntry, 'id'>) => {
-    onUpdateEntry({ ...updatedEntry, id: entry.id });
+  const handleUpdate = (updatedEntryData: Omit<PasswordEntry, 'id'>) => {
+    onUpdateEntry({ ...updatedEntryData, id: entry.id });
   };
 
 
@@ -82,7 +81,7 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry }: PasswordCa
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <PasswordGenerator onAddEntry={handleUpdate} entry={entry}>
+            <PasswordGenerator onAddEntry={handleUpdate} entry={entry} categories={categories}>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
