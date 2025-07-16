@@ -53,7 +53,7 @@ export function PasswordGenerator({
   const [serviceName, setServiceName] = useState(entry ? entry.serviceName : '');
   const [username, setUsername] = useState(entry ? entry.username : '');
   const [url, setUrl] = useState(entry ? entry.url ?? '' : '');
-  const [category, setCategory] = useState(entry ? entry.category : (categories[0]?.slug || ''));
+  const [category, setCategory] = useState(entry ? entry.category : '');
   const [icon, setIcon] = useState(entry ? entry.icon : 'Globe');
 
   const [isSaving, setIsSaving] = useState(false);
@@ -61,12 +61,11 @@ export function PasswordGenerator({
   const { toast } = useToast();
   
   const resetForm = useCallback(() => {
-    const defaultCategory = categories[0]?.slug || '';
     if (!isEditing) {
         setServiceName('');
         setUsername('');
         setUrl('');
-        setCategory(defaultCategory);
+        setCategory('');
         setLength(16);
         setIncludeUppercase(true);
         setIncludeNumbers(true);
@@ -82,7 +81,7 @@ export function PasswordGenerator({
         setIcon(entry.icon);
         setLength(entry.password.length);
     }
-  }, [isEditing, entry, categories]);
+  }, [isEditing, entry]);
 
 
   const generatePassword = useCallback(() => {
@@ -114,8 +113,13 @@ export function PasswordGenerator({
     }
     if (open) {
         resetForm();
+        if (entry) {
+          setCategory(entry.category);
+        } else if (categories.length > 0) {
+          setCategory(categories[0].slug);
+        }
     }
-  }, [generatePassword, isEditing, open, resetForm]);
+  }, [generatePassword, isEditing, open, resetForm, entry, categories]);
 
   const handleCopy = () => {
     if (password) {
@@ -216,7 +220,7 @@ export function PasswordGenerator({
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger id="category">
+              <SelectTrigger id="category" disabled={categories.length === 0}>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>

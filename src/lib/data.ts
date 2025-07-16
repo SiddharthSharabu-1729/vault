@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, type Icon } from 'lucide-react';
+import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus } from 'lucide-react';
 
 export type Category = {
   id: string;
@@ -11,12 +11,10 @@ export type Category = {
 export const defaultCategories: Omit<Category, 'id'>[] = [
     { name: 'Work', slug: 'work', icon: 'Briefcase' },
     { name: 'Personal', slug: 'personal', icon: 'User' },
-    { name: 'Banking', slug: 'banking', icon: 'Banknote' },
-    { name: 'Social Media', slug: 'social-media', icon: 'Users' },
-    { name: 'Streaming', slug: 'streaming', icon: 'Tv' },
+    { name: 'Social', slug: 'social', icon: 'Users' },
 ];
 
-export const iconMap: { [key: string]: LucideIcon | Icon } = {
+export const iconMap: { [key: string]: LucideIcon } = {
   Banknote,
   Briefcase,
   Globe,
@@ -24,6 +22,8 @@ export const iconMap: { [key: string]: LucideIcon | Icon } = {
   Users,
   User,
   Tv,
+  Folder,
+  FolderPlus,
 };
 
 

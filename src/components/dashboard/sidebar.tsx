@@ -2,42 +2,66 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShieldCheck, LogOut, LoaderCircle, LayoutGrid, type Icon } from 'lucide-react';
+import { ShieldCheck, LogOut, LoaderCircle, LayoutGrid, PlusCircle, type Icon } from 'lucide-react';
 import type { Category } from '@/lib/data';
 import { iconMap } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-toggle';
 import { doSignOut } from '@/services/auth';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/authContext';
-import { getCategories } from '@/services/firestore';
+import { getCategories, addCategory } from '@/services/firestore';
+import { CategoryCreator } from './category-creator';
+import { useToast } from '@/hooks/use-toast';
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
+  const { toast } = useToast();
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
-  useEffect(() => {
-    async function fetchCategories() {
-      if (currentUser) {
-        setLoadingCategories(true);
-        const userCategories = await getCategories(currentUser.uid);
-        setCategories(userCategories);
-        setLoadingCategories(false);
-      }
+  const fetchCategories = useCallback(async () => {
+    if (currentUser) {
+      setLoadingCategories(true);
+      const userCategories = await getCategories(currentUser.uid);
+      setCategories(userCategories);
+      setLoadingCategories(false);
     }
-    fetchCategories();
   }, [currentUser]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await doSignOut();
     router.push('/');
   };
+
+  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
+    if (!currentUser) return;
+    try {
+      await addCategory(currentUser.uid, newCategoryData);
+      toast({
+          title: 'Category Created',
+          description: `${newCategoryData.name} has been added.`,
+      });
+      fetchCategories(); // Re-fetch categories to show the new one
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create new category.',
+      });
+    }
+  };
+
 
   const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
 
@@ -52,6 +76,14 @@ export function Sidebar() {
           </Link>
         </div>
         <nav className="flex-1 space-y-1 p-4">
+          <div className="mb-2">
+              <CategoryCreator onAddCategory={handleAddCategory}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-primary">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Category
+                  </Button>
+              </CategoryCreator>
+          </div>
           {loadingCategories ? (
              Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2">

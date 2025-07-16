@@ -23,8 +23,14 @@ export async function createDefaultCategories(userId: string) {
 export async function getCategories(userId: string): Promise<Category[]> {
     const categoriesCollection = collection(db, 'users', userId, 'categories');
     const categorySnapshot = await getDocs(categoriesCollection);
-    const categoriesList = categorySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Category));
+    const categoriesList = categorySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Category)).sort((a, b) => a.name.localeCompare(b.name));
     return categoriesList;
+}
+
+export async function addCategory(userId: string, categoryData: Omit<Category, 'id'>): Promise<Category> {
+    const categoriesCollection = collection(db, 'users', userId, 'categories');
+    const docRef = await addDoc(categoriesCollection, categoryData);
+    return { ...categoryData, id: docRef.id };
 }
 
 // == PASSWORD ENTRY FUNCTIONS ==
