@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser } = useAuth();
   const { toast } = useToast();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -44,10 +44,10 @@ export function Sidebar() {
   }, [currentUser, toast]);
 
   useEffect(() => {
-    if (!authLoading && currentUser) {
+    if (currentUser) {
         fetchCategories();
     }
-  }, [fetchCategories, authLoading, currentUser]);
+  }, [currentUser, fetchCategories]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -96,10 +96,10 @@ export function Sidebar() {
               </CategoryCreator>
           </div>
           {loadingCategories ? (
-             Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2">
-                    <div className="h-4 w-4 bg-muted rounded animate-pulse" />
-                    <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+             Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 animate-pulse">
+                    <div className="h-4 w-4 bg-muted rounded" />
+                    <div className="h-4 w-2/3 bg-muted rounded" />
                 </div>
              ))
           ) : (

@@ -21,7 +21,7 @@ import { getEntries, addEntry, updateEntry, deleteEntry, getCategories } from '@
 import { useToast } from '@/hooks/use-toast';
 
 function DashboardPage() {
-  const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser } = useAuth();
   const { toast } = useToast();
 
   const [entries, setEntries] = useState<PasswordEntry[]>([]);
@@ -55,11 +55,10 @@ function DashboardPage() {
   }, [currentUser, toast]);
 
   useEffect(() => {
-    // Only fetch data if auth is done loading and we have a user
-    if (!authLoading && currentUser) {
+    if (currentUser) {
       fetchAllData();
     }
-  }, [fetchAllData, authLoading, currentUser]);
+  }, [currentUser, fetchAllData]);
 
   useEffect(() => {
     const categorySlug = pathname.split('/')[2] || 'all';
@@ -82,6 +81,9 @@ function DashboardPage() {
     try {
       const newEntry = await addEntry(currentUser.uid, newEntryData);
       setEntries((prev) => [newEntry, ...prev]);
+      // Also refetch categories in case a new one was implicitly used
+      const userCategories = await getCategories(currentUser.uid);
+      setCategories(userCategories);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -129,9 +131,16 @@ function DashboardPage() {
     return category ? category.name : 'Vault Entries';
   }
 
+  const handleCategoryCreated = async () => {
+    if (!currentUser) return;
+    const userCategories = await getCategories(currentUser.uid);
+    setCategories(userCategories);
+  };
+
+
   return (
     <>
-      <Header categories={categories} />
+      <Header categories={categories} onCategoryCreated={handleCategoryCreated} />
       <main className="flex-1 p-4 sm:p-6">
         <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
           <Card>

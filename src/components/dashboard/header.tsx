@@ -5,7 +5,8 @@ import {
   Menu,
   Search,
   ShieldCheck,
-  LayoutGrid
+  LayoutGrid,
+  PlusCircle,
 } from 'lucide-react';
 import type { Icon } from 'lucide-react';
 
@@ -21,15 +22,22 @@ import { iconMap } from '@/lib/data';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
+import { CategoryCreator } from './category-creator';
+import { useAuth } from '@/contexts/authContext';
+import { addCategory } from '@/services/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface HeaderProps {
     categories: Category[];
+    onCategoryCreated: () => void;
 }
 
-export function Header({ categories }: HeaderProps) {
+export function Header({ categories, onCategoryCreated }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const params = new URLSearchParams(searchParams);
@@ -39,6 +47,24 @@ export function Header({ categories }: HeaderProps) {
       params.delete('q');
     }
     router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
+    if (!currentUser) return;
+    try {
+      await addCategory(currentUser.uid, newCategoryData);
+      toast({
+          title: 'Category Created',
+          description: `${newCategoryData.name} has been added.`,
+      });
+      onCategoryCreated();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create new category.',
+      });
+    }
   };
 
   const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
@@ -62,6 +88,16 @@ export function Header({ categories }: HeaderProps) {
               <ShieldCheck className="h-5 w-5 transition-all group-hover:scale-110" />
               <span className="sr-only">Fortress Vault</span>
             </Link>
+            
+            <div className="px-2.5">
+              <CategoryCreator onAddCategory={handleAddCategory}>
+                  <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    New Category
+                  </Button>
+              </CategoryCreator>
+            </div>
+
             {allCategories.map((category) => {
               const IconComponent = (iconMap[category.icon] || LayoutGrid) as Icon;
               return (
