@@ -1,7 +1,7 @@
 'use server';
 
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import type { PasswordEntry } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
@@ -23,7 +23,6 @@ export async function createDefaultCategories(userId: string) {
 export async function getCategories(userId: string): Promise<Category[]> {
     const currentUser = auth.currentUser;
     if (!currentUser || currentUser.uid !== userId) {
-        console.error("Attempted to get categories with mismatched or no user ID.");
         return [];
     }
     const categoriesCollection = collection(db, 'users', userId, 'categories');
@@ -43,7 +42,6 @@ export async function addCategory(userId: string, categoryData: Omit<Category, '
 export async function getEntries(userId: string): Promise<PasswordEntry[]> {
     const currentUser = auth.currentUser;
     if (!currentUser || currentUser.uid !== userId) {
-        console.error("Attempted to get entries with mismatched or no user ID.");
         return [];
     }
     const entriesCollection = collection(db, 'users', userId, 'entries');
