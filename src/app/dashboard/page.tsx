@@ -21,7 +21,7 @@ import { getEntries, addEntry, updateEntry, deleteEntry, getCategories } from '@
 import { useToast } from '@/hooks/use-toast';
 
 function DashboardPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const [entries, setEntries] = useState<PasswordEntry[]>([]);
@@ -43,6 +43,7 @@ function DashboardPage() {
       setEntries(userEntries);
       setCategories(userCategories);
     } catch (error) {
+      console.error("Error fetching data:", error);
       toast({
         variant: 'destructive',
         title: 'Error fetching data',
@@ -54,15 +55,18 @@ function DashboardPage() {
   }, [currentUser, toast]);
 
   useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+    // Only fetch data if auth is done loading and we have a user
+    if (!authLoading && currentUser) {
+      fetchAllData();
+    }
+  }, [fetchAllData, authLoading, currentUser]);
 
   useEffect(() => {
     const categorySlug = pathname.split('/')[2] || 'all';
     const searchTerm = searchParams.get('q')?.toLowerCase() || '';
 
     const newFilteredEntries = entries.filter((entry) => {
-      const inCategory = categorySlug === 'all' || entry.category.toLowerCase() === categorySlug;
+      const inCategory = categorySlug === 'all' || entry.category === categorySlug;
       const inSearch =
         searchTerm === '' ||
         entry.serviceName.toLowerCase().includes(searchTerm) ||
@@ -120,7 +124,7 @@ function DashboardPage() {
 
   const getPageTitle = () => {
     const categorySlug = pathname.split('/')[2];
-    if (!categorySlug) return 'All Vault Entries';
+    if (!categorySlug || categorySlug === 'all') return 'All Vault Entries';
     const category = categories.find(c => c.slug === categorySlug);
     return category ? category.name : 'Vault Entries';
   }

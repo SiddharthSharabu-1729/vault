@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -26,17 +26,28 @@ export function Sidebar() {
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   const fetchCategories = useCallback(async () => {
-    if (currentUser) {
-      setLoadingCategories(true);
-      const userCategories = await getCategories(currentUser.uid);
-      setCategories(userCategories);
-      setLoadingCategories(false);
+    if (!currentUser) return;
+    setLoadingCategories(true);
+    try {
+        const userCategories = await getCategories(currentUser.uid);
+        setCategories(userCategories);
+    } catch(error) {
+        console.error("Error fetching categories:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not load categories.',
+        });
+    } finally {
+        setLoadingCategories(false);
     }
-  }, [currentUser]);
+  }, [currentUser, toast]);
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (!authLoading && currentUser) {
+        fetchCategories();
+    }
+  }, [fetchCategories, authLoading, currentUser]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
