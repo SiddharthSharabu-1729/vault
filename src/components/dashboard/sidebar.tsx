@@ -21,19 +21,23 @@ export function Sidebar() {
           </Link>
         </div>
         <nav className="flex-1 space-y-1 p-4">
-          {categories.map((category) => (
-            <Link
-              key={category.slug}
-              href={`/dashboard/${category.slug === 'all' ? '' : category.slug}`}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                pathname === `/dashboard/${category.slug}` && 'bg-muted text-primary'
-              )}
-            >
-              <category.icon className="h-4 w-4" />
-              {category.name}
-            </Link>
-          ))}
+          {categories.map((category) => {
+             const href = `/dashboard/${category.slug === 'all' ? '' : category.slug}`;
+             const isActive = (pathname === '/dashboard' && category.slug === 'all') || pathname === href;
+            return (
+                <Link
+                key={category.slug}
+                href={href}
+                className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                    isActive && 'bg-muted text-primary'
+                )}
+                >
+                <category.icon className="h-4 w-4" />
+                {category.name}
+                </Link>
+            )
+          })}
         </nav>
       </div>
       <div className="mt-auto p-4 border-t">

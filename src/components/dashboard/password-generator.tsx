@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Copy, RefreshCw, Save } from 'lucide-react';
+import { Copy, RefreshCw, Save, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getIconForUrl } from '@/ai/flows/get-icon-flow';
 
 interface PasswordGeneratorProps {
   children: React.ReactNode;
@@ -40,7 +41,7 @@ export function PasswordGenerator({
   entry,
 }: PasswordGeneratorProps) {
   const [open, setOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(!!entry);
+  const isEditing = !!entry;
 
   const [length, setLength] = useState(entry ? entry.password.length : 16);
   const [includeUppercase, setIncludeUppercase] = useState(true);
@@ -50,12 +51,15 @@ export function PasswordGenerator({
   const [password, setPassword] = useState(entry ? entry.password : '');
   const [serviceName, setServiceName] = useState(entry ? entry.serviceName : '');
   const [username, setUsername] = useState(entry ? entry.username : '');
-  const [url, setUrl] = useState(entry ? entry.url : '');
+  const [url, setUrl] = useState(entry ? entry.url ?? '' : '');
   const [category, setCategory] = useState(entry ? entry.category : 'personal');
+  const [icon, setIcon] = useState(entry ? entry.icon : 'Globe');
+
+  const [isSaving, setIsSaving] = useState(false);
   
   const { toast } = useToast();
   
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     if (!isEditing) {
         setServiceName('');
         setUsername('');
@@ -65,8 +69,10 @@ export function PasswordGenerator({
         setIncludeUppercase(true);
         setIncludeNumbers(true);
         setIncludeSymbols(true);
+        setIcon('Globe');
+        setPassword('');
     }
-  };
+  }, [isEditing]);
 
 
   const generatePassword = useCallback(() => {
@@ -93,10 +99,10 @@ export function PasswordGenerator({
   }, [length, includeUppercase, includeNumbers, includeSymbols]);
 
   useEffect(() => {
-    if (!isEditing) {
+    if (open && !isEditing) {
         generatePassword();
     }
-  }, [generatePassword, isEditing]);
+  }, [generatePassword, isEditing, open]);
 
   const handleCopy = () => {
     if (password) {
@@ -108,7 +114,7 @@ export function PasswordGenerator({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!serviceName || !username || !password) {
       toast({
         variant: 'destructive',
@@ -117,6 +123,17 @@ export function PasswordGenerator({
       });
       return;
     }
+    setIsSaving(true);
+    let finalIcon = icon;
+    if (url) {
+      try {
+        const result = await getIconForUrl({ url });
+        finalIcon = result.iconName;
+      } catch (error) {
+        console.error("Failed to get icon from AI", error);
+        finalIcon = 'Globe';
+      }
+    }
 
     const newEntry = {
       serviceName,
@@ -124,10 +141,9 @@ export function PasswordGenerator({
       url,
       category,
       password,
-      icon: 'Globe',
+      icon: finalIcon,
     };
     
-    // In a real app, this would be an update call if entry exists
     onAddEntry(newEntry);
 
     toast({
@@ -135,6 +151,7 @@ export function PasswordGenerator({
       description: `${serviceName} has been saved to your vault.`,
     });
     
+    setIsSaving(false);
     setOpen(false);
   };
   
@@ -142,7 +159,7 @@ export function PasswordGenerator({
       if(!open) {
           resetForm();
       }
-  }, [open]);
+  }, [open, resetForm]);
 
 
   return (
@@ -262,11 +279,15 @@ export function PasswordGenerator({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isSaving}>Cancel</Button>
           </DialogClose>
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Entry
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            {isSaving ? 'Saving...' : 'Save Entry'}
           </Button>
         </DialogFooter>
       </DialogContent>

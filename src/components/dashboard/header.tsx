@@ -15,12 +15,26 @@ import {
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { categories } from '@/lib/data';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const params = new URLSearchParams(searchParams);
+    if (e.target.value) {
+      params.set('q', e.target.value);
+    } else {
+      params.delete('q');
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sticky top-0 z-10">
       <Sheet>
@@ -45,7 +59,7 @@ export function Header() {
                 href={`/dashboard/${category.slug === 'all' ? '' : category.slug}`}
                 className={cn(
                   'flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground',
-                  pathname === `/dashboard/${category.slug}` && 'text-foreground'
+                  (pathname === `/dashboard` && category.slug === 'all') || pathname === `/dashboard/${category.slug}` ? 'text-foreground' : ''
                 )}
               >
                 <category.icon className="h-5 w-5" />
@@ -64,6 +78,8 @@ export function Header() {
           type="search"
           placeholder="Search entries..."
           className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+          onChange={handleSearch}
+          defaultValue={searchParams.get('q') ?? ''}
         />
       </div>
       <div className="ml-auto">

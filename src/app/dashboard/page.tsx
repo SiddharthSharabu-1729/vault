@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { PasswordGenerator } from '@/components/dashboard/password-generator';
 import { PasswordCard } from '@/components/dashboard/password-card';
 import { passwordEntries as initialPasswordEntries } from '@/lib/data';
@@ -15,20 +15,31 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
+import { Header } from '@/components/dashboard/header';
+
 
 export default function DashboardPage() {
   const [entries, setEntries] = useState<PasswordEntry[]>(initialPasswordEntries);
   const [filteredEntries, setFilteredEntries] = useState<PasswordEntry[]>(entries);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const category = pathname.split('/')[2];
-    if (category && category !== 'all') {
-      setFilteredEntries(entries.filter((entry) => entry.category === category));
-    } else {
-      setFilteredEntries(entries);
-    }
-  }, [pathname, entries]);
+    const category = pathname.split('/')[2] || 'all';
+    const searchTerm = searchParams.get('q')?.toLowerCase() || '';
+
+    const newFilteredEntries = entries.filter((entry) => {
+      const inCategory = category === 'all' || entry.category === category;
+      const inSearch =
+        searchTerm === '' ||
+        entry.serviceName.toLowerCase().includes(searchTerm) ||
+        entry.username.toLowerCase().includes(searchTerm);
+      return inCategory && inSearch;
+    });
+
+    setFilteredEntries(newFilteredEntries);
+  }, [pathname, entries, searchParams]);
+
 
   const addEntry = (newEntry: Omit<PasswordEntry, 'id'>) => {
     const entry: PasswordEntry = { ...newEntry, id: Date.now().toString() };
@@ -46,6 +57,9 @@ export default function DashboardPage() {
   };
 
   return (
+    <>
+    <Header />
+    <main className="flex-1 p-4 sm:p-6">
     <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
       <Card>
         <CardHeader>
@@ -87,5 +101,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </div>
+    </main>
+    </>
   );
 }
