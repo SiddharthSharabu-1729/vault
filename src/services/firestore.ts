@@ -5,6 +5,7 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, w
 import type { PasswordEntry } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
+import { getAuth } from 'firebase/auth';
 
 // == CATEGORY FUNCTIONS ==
 
@@ -21,6 +22,10 @@ export async function createDefaultCategories(userId: string) {
 }
 
 export async function getCategories(userId: string): Promise<Category[]> {
+    if (!userId) {
+        console.error("Attempted to get categories without a user ID.");
+        return [];
+    }
     const categoriesCollection = collection(db, 'users', userId, 'categories');
     const categorySnapshot = await getDocs(categoriesCollection);
     const categoriesList = categorySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Category)).sort((a, b) => a.name.localeCompare(b.name));
@@ -36,6 +41,10 @@ export async function addCategory(userId: string, categoryData: Omit<Category, '
 // == PASSWORD ENTRY FUNCTIONS ==
 
 export async function getEntries(userId: string): Promise<PasswordEntry[]> {
+    if (!userId) {
+        console.error("Attempted to get entries without a user ID.");
+        return [];
+    }
     const entriesCollection = collection(db, 'users', userId, 'entries');
     const entrySnapshot = await getDocs(entriesCollection);
     const entryList = entrySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as PasswordEntry));
