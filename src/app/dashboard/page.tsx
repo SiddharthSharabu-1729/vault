@@ -87,6 +87,7 @@ function DashboardPage() {
       });
       await fetchAllData();
     } catch (error) {
+      console.error("Error creating category:", error);
       toast({
         variant: 'destructive',
         title: 'Error',

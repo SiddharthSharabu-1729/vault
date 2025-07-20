@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthChanged } from '@/services/auth';
-import { LoaderCircle } from 'lucide-react';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -46,17 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
