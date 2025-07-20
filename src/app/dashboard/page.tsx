@@ -34,10 +34,8 @@ function DashboardPage() {
   const searchParams = useSearchParams();
 
   const fetchAllData = useCallback(async () => {
-    if (!currentUser) {
-        setPageLoading(false);
-        return;
-    };
+    if (!currentUser) return;
+
     setPageLoading(true);
     try {
       const [userEntries, userCategories] = await Promise.all([

@@ -7,16 +7,16 @@ import { LoaderCircle } from 'lucide-react';
 
 export default function withAuth<P extends object>(WrappedComponent: React.ComponentType<P>) {
   const WithAuthComponent = (props: P) => {
-    const { currentUser, loading } = useAuth();
+    const { currentUser, isInitialized } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-      if (!loading && !currentUser) {
+      if (isInitialized && !currentUser) {
         router.push('/');
       }
-    }, [currentUser, loading, router]);
+    }, [currentUser, isInitialized, router]);
 
-    if (loading || !currentUser) {
+    if (!isInitialized || !currentUser) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <LoaderCircle className="w-12 h-12 animate-spin text-primary" />

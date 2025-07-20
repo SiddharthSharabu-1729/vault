@@ -1,18 +1,18 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { onAuthChanged } from '@/services/auth';
+import { onAuthStateChanged } from '@/services/auth';
 
 interface AuthContextType {
   currentUser: User | null;
   userLoggedIn: boolean;
-  loading: boolean;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   userLoggedIn: false,
-  loading: true,
+  isInitialized: false,
 });
 
 export function useAuth() {
@@ -22,7 +22,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthChanged((user) => {
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(null);
         setUserLoggedIn(false);
       }
-      setLoading(false);
+      setIsInitialized(true);
     });
 
     // Cleanup subscription on unmount
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     currentUser,
     userLoggedIn,
-    loading,
+    isInitialized,
   };
 
   return (
