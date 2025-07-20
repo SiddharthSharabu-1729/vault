@@ -1,6 +1,6 @@
 'use client';
 
-import React, 'use client';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, LogOut, User as UserIcon, Settings, type Icon } from 'lucide-react';
