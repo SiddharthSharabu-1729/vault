@@ -28,14 +28,14 @@ function DashboardPage() {
   const [entries, setEntries] = useState<PasswordEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<PasswordEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const fetchAllData = useCallback(async () => {
     if (!currentUser) return;
-    setLoading(true);
+    setPageLoading(true);
     try {
       const [userEntries, userCategories] = await Promise.all([
         getEntries(currentUser.uid),
@@ -51,7 +51,7 @@ function DashboardPage() {
         description: 'Could not load your vault. Please try again later.',
       });
     } finally {
-      setLoading(false);
+      setPageLoading(false);
     }
   }, [currentUser, toast]);
 
@@ -104,7 +104,7 @@ function DashboardPage() {
         title: 'Entry Added',
         description: `${newEntryData.serviceName} has been saved to your vault.`,
       });
-      await fetchAllData(); // Re-fetch all data to ensure consistency
+      await fetchAllData();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -123,7 +123,7 @@ function DashboardPage() {
         title: 'Entry Updated',
         description: `${updatedEntry.serviceName} has been updated.`,
       });
-       await fetchAllData(); // Re-fetch all data
+       await fetchAllData();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -141,7 +141,7 @@ function DashboardPage() {
         title: 'Entry Deleted',
         description: `The entry has been removed from your vault.`,
       });
-      await fetchAllData(); // Re-fetch to update the list
+      await fetchAllData();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -160,9 +160,9 @@ function DashboardPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
-      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={loading} />
+      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header categories={categories} onAddCategory={handleAddCategory} loading={loading} />
+        <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
             <Card>
@@ -183,7 +183,7 @@ function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {loading ? (
+                {pageLoading ? (
                   <div className="flex justify-center items-center py-12">
                     <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
                   </div>
