@@ -13,14 +13,20 @@ import {
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ThemeToggle } from './theme-toggle';
-import { useAuth } from '@/contexts/authContext';
+import { SidebarMobile } from './sidebar-mobile';
+import type { Category } from '@/lib/data';
 
-export function Header() {
+
+interface HeaderProps {
+    categories: Category[];
+    onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
+    loading: boolean;
+}
+
+export function Header({ categories, onAddCategory, loading }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { currentUser } = useAuth();
  
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const params = new URLSearchParams(searchParams);
@@ -29,7 +35,6 @@ export function Header() {
     } else {
       params.delete('q');
     }
-    // Note: This relies on the page to have access to categories for mobile sidebar
     router.replace(`${pathname}?${params.toString()}`);
   };
 
@@ -43,7 +48,7 @@ export function Header() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="sm:max-w-xs">
-           {/* Mobile Sidebar is now part of the main page and will need props passed here if needed */}
+           <SidebarMobile categories={categories} onAddCategory={onAddCategory} loading={loading} />
         </SheetContent>
       </Sheet>
       <div className="relative flex-1 md:grow-0">
@@ -57,7 +62,7 @@ export function Header() {
         />
       </div>
       <div className="ml-auto flex items-center gap-2">
-         <ThemeToggle />
+         {/* Theme toggle was moved to sidebar user menu */}
       </div>
     </header>
   );

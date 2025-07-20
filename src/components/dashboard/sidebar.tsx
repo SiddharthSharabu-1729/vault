@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, LogOut, User as UserIcon, Settings, type Icon } from 'lucide-react';
@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '../ui/skeleton';
 
 interface SidebarProps {
     categories: Category[];
@@ -31,7 +32,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -61,8 +62,8 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
         {loading ? (
            Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 animate-pulse">
-                  <div className="h-4 w-4 bg-muted rounded" />
-                  <div className="h-4 w-2/3 bg-muted rounded" />
+                  <Skeleton className="h-4 w-4 rounded" />
+                  <Skeleton className="h-4 w-2/3 rounded" />
               </div>
            ))
         ) : (
@@ -109,7 +110,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
             <DropdownMenuContent className="w-64 mb-2" side="top" align="start">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="flex items-center justify-between">
+                <DropdownMenuItem className="flex items-center justify-between" onSelect={e => e.preventDefault()}>
                     <span>Theme</span>
                     <ThemeToggle />
                 </DropdownMenuItem>

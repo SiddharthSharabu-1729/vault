@@ -98,11 +98,10 @@ function DashboardPage() {
   const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>) => {
     if (!currentUser) return;
     try {
-      const newEntry = await addEntry(currentUser.uid, newEntryData);
-      setEntries((prev) => [newEntry, ...prev]);
+      await addEntry(currentUser.uid, newEntryData);
       toast({
         title: 'Entry Added',
-        description: `${newEntry.serviceName} has been saved to your vault.`,
+        description: `${newEntryData.serviceName} has been saved to your vault.`,
       });
       await fetchAllData(); // Re-fetch all data to ensure consistency
     } catch (error) {
@@ -141,7 +140,7 @@ function DashboardPage() {
         title: 'Entry Deleted',
         description: `The entry has been removed from your vault.`,
       });
-      setEntries((prev) => prev.filter((entry) => entry.id !== id));
+      await fetchAllData(); // Re-fetch to update the list
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -162,7 +161,7 @@ function DashboardPage() {
     <div className="flex min-h-screen w-full bg-muted/40">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={loading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header />
+        <Header categories={categories} onAddCategory={handleAddCategory} loading={loading} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
             <Card>
