@@ -142,9 +142,9 @@ export function PasswordGenerator({
     }
     setIsSaving(true);
     let finalIcon = icon;
-    if (url && (!isEditing || url !== entry?.url)) {
+    if (url.trim() && (!isEditing || url !== entry?.url)) {
       try {
-        const result = await getIconForUrl({ url });
+        const result = await getIconForUrl({ url: url.trim() });
         finalIcon = result.iconName;
       } catch (error) {
         console.error("Failed to get icon from AI", error);
@@ -163,10 +163,7 @@ export function PasswordGenerator({
     
     onAddEntry(newEntry);
 
-    toast({
-      title: isEditing ? 'Entry Updated' : 'Entry Added',
-      description: `${serviceName} has been saved to your vault.`,
-    });
+    // Toast is handled in the parent component now
     
     setIsSaving(false);
     setOpen(false);
