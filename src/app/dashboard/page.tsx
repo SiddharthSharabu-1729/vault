@@ -34,7 +34,10 @@ function DashboardPage() {
   const searchParams = useSearchParams();
 
   const fetchAllData = useCallback(async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+        setPageLoading(false);
+        return;
+    };
     setPageLoading(true);
     try {
       const [userEntries, userCategories] = await Promise.all([
@@ -56,10 +59,8 @@ function DashboardPage() {
   }, [currentUser, toast]);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchAllData();
-    }
-  }, [currentUser, fetchAllData]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   useEffect(() => {
     const categorySlug = pathname.split('/')[2] || 'all';
