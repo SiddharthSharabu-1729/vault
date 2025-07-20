@@ -41,8 +41,8 @@ function DashboardPage() {
     setPageLoading(true);
     try {
       const [userEntries, userCategories] = await Promise.all([
-        getEntries(currentUser.uid),
-        getCategories(currentUser.uid),
+        getEntries(),
+        getCategories(),
       ]);
       setEntries(userEntries);
       setCategories(userCategories);
@@ -79,9 +79,8 @@ function DashboardPage() {
   }, [pathname, entries, searchParams]);
   
   const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
-    if (!currentUser) return;
     try {
-      await addCategory(currentUser.uid, newCategoryData);
+      await addCategory(newCategoryData);
       toast({
           title: 'Category Created',
           description: `${newCategoryData.name} has been added.`,
@@ -98,9 +97,8 @@ function DashboardPage() {
   };
 
   const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>) => {
-    if (!currentUser) return;
     try {
-      await addEntry(currentUser.uid, newEntryData);
+      await addEntry(newEntryData);
       toast({
         title: 'Entry Added',
         description: `${newEntryData.serviceName} has been saved to your vault.`,
@@ -116,10 +114,9 @@ function DashboardPage() {
   };
 
   const handleUpdateEntry = async (updatedEntry: PasswordEntry) => {
-    if (!currentUser) return;
     const { id, ...dataToUpdate } = updatedEntry;
     try {
-      await updateEntry(currentUser.uid, id, dataToUpdate);
+      await updateEntry(id, dataToUpdate);
        toast({
         title: 'Entry Updated',
         description: `${updatedEntry.serviceName} has been updated.`,
@@ -135,9 +132,8 @@ function DashboardPage() {
   };
 
   const handleDeleteEntry = async (id: string) => {
-    if (!currentUser) return;
     try {
-      await deleteEntry(currentUser.uid, id);
+      await deleteEntry(id);
        toast({
         title: 'Entry Deleted',
         description: `The entry has been removed from your vault.`,
