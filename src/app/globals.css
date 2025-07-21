@@ -100,4 +100,31 @@ html[class~="light"] {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  
+  .prose {
+    @apply max-w-none;
+  }
+
+  .prose :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+  }
+
+  .prose :where(h1,h2,h3,h4,h5,h6) {
+    color: inherit;
+    font-weight: 600;
+  }
+
+  .prose :where(strong) {
+    color: inherit;
+    font-weight: 600;
+  }
+
+  .prose :where(ul > li::before) {
+    background-color: hsl(var(--muted-foreground));
+  }
+
+  .prose :where(ol > li::before) {
+    color: hsl(var(--muted-foreground));
+  }
 }

@@ -47,7 +47,7 @@ import { iconMap } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { EntryForm } from './password-generator';
 import { decryptPassword } from '@/services/crypto';
-import { addActivityLog, doVerifyPassword } from '@/services/auth';
+import { addActivityLog } from '@/services/auth';
 
 
 interface EntryCardProps {
@@ -204,9 +204,10 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
         );
       case 'note':
         return (
-          <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words p-3 bg-muted rounded-md max-h-24 overflow-y-auto">
-            {entry.notes}
-          </div>
+          <div 
+            className="prose prose-sm prose-invert max-w-none text-sm text-muted-foreground whitespace-pre-wrap break-words p-3 bg-muted rounded-md max-h-24 overflow-y-auto"
+            dangerouslySetInnerHTML={{ __html: entry.notes || ''}}
+          />
         )
       default:
         return null;

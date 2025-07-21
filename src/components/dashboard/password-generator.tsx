@@ -31,8 +31,8 @@ import { getIconForKeyword } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '../ui/textarea';
 import { doVerifyPassword } from '@/services/auth';
+import { Editor } from '../editor';
 
 
 interface EntryFormProps {
@@ -287,7 +287,7 @@ export function EntryForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEditing ? `Edit ${entry?.type}` : 'Add New Entry'}</DialogTitle>
           <DialogDescription>
@@ -358,7 +358,7 @@ export function EntryForm({
                 <TabsContent value="note" className="space-y-4 m-0">
                      <div className="space-y-2">
                         <Label htmlFor="notes">Content</Label>
-                        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Type your secure note here..." className="min-h-[200px]" />
+                        <Editor content={notes} onChange={setNotes} />
                     </div>
                 </TabsContent>
 
