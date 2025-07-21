@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
+import { NotesView } from '@/components/dashboard/notes-view';
 import type { VaultEntry, Category } from '@/lib/data';
 import { PlusCircle, LoaderCircle, Trash2, KeyRound, Lock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -138,7 +139,6 @@ function CategoryPage() {
 
   const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
     try {
-      // Password validation is now handled inside EntryForm
       await addEntry(newEntryData, masterPassword);
       await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
       toast({
@@ -147,7 +147,6 @@ function CategoryPage() {
       });
       await fetchAllData();
     } catch (error) {
-      // The toast for save failure is now more generic as password validation is separate
       toast({
         variant: 'destructive',
         title: 'Save Failed',
@@ -158,7 +157,6 @@ function CategoryPage() {
 
   const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
     try {
-      // Password validation is now handled inside EntryForm
       await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
       await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
        toast({
@@ -273,7 +271,7 @@ function CategoryPage() {
                       ))}
                     </div>
                   </div>
-                ) : filteredEntries.length > 0 ? (
+                ) : filteredEntries.length > 0 || categorySlug === 'all' ? (
                     <Tabs defaultValue="passwords" className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="passwords"><Lock className="mr-2 h-4 w-4" /> Passwords ({passwordEntries.length})</TabsTrigger>
@@ -319,23 +317,14 @@ function CategoryPage() {
                             )}
                         </TabsContent>
                         <TabsContent value="notes" className="pt-6">
-                            {noteEntries.length > 0 ? (
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    {noteEntries.map((entry) => (
-                                        <EntryCard
-                                            key={entry.id}
-                                            entry={entry}
-                                            onUpdateEntry={handleUpdateEntry}
-                                            onDeleteEntry={handleDeleteEntry}
-                                            categories={categories}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <p className="text-sm text-muted-foreground">No secure notes in this category.</p>
-                                </div>
-                            )}
+                             <NotesView 
+                                notes={noteEntries} 
+                                categories={categories}
+                                onAddEntry={handleAddEntry}
+                                onUpdateEntry={handleUpdateEntry}
+                                onDeleteEntry={handleDeleteEntry}
+                                activeCategorySlug={categorySlug === 'all' ? undefined : categorySlug}
+                            />
                         </TabsContent>
                     </Tabs>
                 ) : (

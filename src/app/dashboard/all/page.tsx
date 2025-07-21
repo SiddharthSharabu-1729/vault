@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
+import { NotesView } from '@/components/dashboard/notes-view';
 import type { VaultEntry, Category } from '@/lib/data';
 import { PlusCircle, LoaderCircle, KeyRound, Lock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -103,7 +104,6 @@ function AllEntriesPage() {
 
   const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
     try {
-      // Password validation is now handled inside EntryForm
       await addEntry(newEntryData, masterPassword);
       await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
       toast({
@@ -122,7 +122,6 @@ function AllEntriesPage() {
 
   const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
     try {
-      // Password validation is now handled inside EntryForm
       await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
       await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
        toast({
@@ -243,23 +242,13 @@ function AllEntriesPage() {
                             )}
                         </TabsContent>
                         <TabsContent value="notes" className="pt-6">
-                            {noteEntries.length > 0 ? (
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    {noteEntries.map((entry) => (
-                                        <EntryCard
-                                            key={entry.id}
-                                            entry={entry}
-                                            onUpdateEntry={handleUpdateEntry}
-                                            onDeleteEntry={handleDeleteEntry}
-                                            categories={categories}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <p className="text-sm text-muted-foreground">No secure notes found.</p>
-                                </div>
-                            )}
+                           <NotesView 
+                                notes={noteEntries} 
+                                categories={categories}
+                                onAddEntry={handleAddEntry}
+                                onUpdateEntry={handleUpdateEntry}
+                                onDeleteEntry={handleDeleteEntry}
+                            />
                         </TabsContent>
                     </Tabs>
                 ) : (

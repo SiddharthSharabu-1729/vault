@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Copy, RefreshCw, Save, LoaderCircle, KeyRound, Lock, StickyNote, FileKey } from 'lucide-react';
+import { Copy, RefreshCw, Save, LoaderCircle, KeyRound, Lock, FileKey } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,7 +32,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
 import { doVerifyPassword } from '@/services/auth';
-import { Editor } from '../editor';
 
 
 interface EntryFormProps {
@@ -69,7 +68,6 @@ export function EntryForm({
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [url, setUrl] = useState('');
-  const [notes, setNotes] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [category, setCategory] = useState('');
   const [icon, setIcon] = useState('Globe');
@@ -88,7 +86,6 @@ export function EntryForm({
     setTitle(entry?.title ?? '');
     setUsername(entry?.username ?? '');
     setUrl(entry?.url ?? '');
-    setNotes(entry?.notes ?? '');
     setCategory(activeCategorySlug ?? entry?.category ?? (categories.length > 0 ? categories[0].slug : ''));
     setIcon(entry?.icon ?? 'Globe');
 
@@ -209,8 +206,6 @@ export function EntryForm({
 
     if (entryType === 'password') {
         finalIcon = getIconForKeyword(searchString, 'Globe');
-    } else if (entryType === 'note') {
-        finalIcon = 'StickyNote';
     } else if (entryType === 'apiKey') {
         finalIcon = getIconForKeyword(searchString, 'FileKey');
     }
@@ -232,18 +227,15 @@ export function EntryForm({
           setIsSaving(false);
           return;
         }
-        entryData = { ...baseData, username, password };
+        entryData = { ...baseData, username, password, notes: '' }; // notes is empty for password type
         if (!passwordChanged) masterPassForUpdate = undefined;
-    } else if (entryType === 'note') {
-        entryData = { ...baseData, notes };
-        masterPassForUpdate = undefined; // Notes are not encrypted
     } else if (entryType === 'apiKey') {
          if (!isEditing && !apiKey) {
           toast({ variant: 'destructive', title: 'Missing API Key', description: 'Please enter an API key.' });
           setIsSaving(false);
           return;
         }
-        entryData = { ...baseData, apiKey };
+        entryData = { ...baseData, apiKey, notes: '' }; // notes is empty for apiKey type
         if (!apiKeyChanged) masterPassForUpdate = undefined;
     } else {
         toast({ variant: 'destructive', title: 'Unknown Entry Type' });
@@ -258,7 +250,7 @@ export function EntryForm({
                 ...baseData,
                 username: entryType === 'password' ? username : entry.username,
                 password: entryType === 'password' && passwordChanged ? password : entry.password,
-                notes: entryType === 'note' ? notes : entry.notes,
+                notes: entry.notes, // notes are handled separately
                 apiKey: entryType === 'apiKey' && apiKeyChanged ? apiKey : entry.apiKey,
             };
             await onUpdateEntry(updatedEntryData, masterPassForUpdate);
@@ -291,14 +283,13 @@ export function EntryForm({
         <DialogHeader>
           <DialogTitle>{isEditing ? `Edit ${entry?.type}` : 'Add New Entry'}</DialogTitle>
           <DialogDescription>
-             {isEditing ? `Update the details for this ${entry?.type}.` : 'Securely save a password, note, or API key.'}
+             {isEditing ? `Update the details for this ${entry?.type}.` : 'Securely save a password or API key.'}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={entryType} onValueChange={(v) => setEntryType(v as EntryType)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3" style={{ pointerEvents: isEditing ? 'none' : 'auto' }}>
+            <TabsList className="grid w-full grid-cols-2" style={{ pointerEvents: isEditing ? 'none' : 'auto' }}>
                 <TabsTrigger value="password"><Lock className="mr-2 h-4 w-4" />Password</TabsTrigger>
-                <TabsTrigger value="note"><StickyNote className="mr-2 h-4 w-4"/>Note</TabsTrigger>
                 <TabsTrigger value="apiKey"><FileKey className="mr-2 h-4 w-4" />API Key</TabsTrigger>
             </TabsList>
 
@@ -309,7 +300,7 @@ export function EntryForm({
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder={entryType === 'password' ? "e.g. Google" : entryType === 'note' ? "e.g. Shopping List" : "e.g. OpenAI API"}
+                    placeholder={entryType === 'password' ? "e.g. Google" : "e.g. OpenAI API"}
                     />
                 </div>
                 
@@ -355,13 +346,6 @@ export function EntryForm({
                     </div>
                 </TabsContent>
                 
-                <TabsContent value="note" className="space-y-4 m-0">
-                     <div className="space-y-2">
-                        <Label htmlFor="notes">Content</Label>
-                        <Editor content={notes} onChange={setNotes} />
-                    </div>
-                </TabsContent>
-
                 <TabsContent value="apiKey" className="space-y-4 m-0">
                     <div className="space-y-2">
                         <Label htmlFor="apiKey">{isEditing && !apiKeyChanged ? 'New API Key (Optional)' : 'API Key'}</Label>
