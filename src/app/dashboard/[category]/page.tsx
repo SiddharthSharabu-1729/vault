@@ -32,7 +32,7 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
 import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory, deleteCategory } from '@/services/firestore';
-import { addActivityLog, doVerifyPassword } from '@/services/auth';
+import { addActivityLog } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -126,7 +126,6 @@ function CategoryPage() {
             description: `The "${categoryName}" category has been deleted.`,
         });
         router.push('/dashboard/all');
-        // No need to call fetchAllData here as we are navigating away
     } catch (error) {
         console.error("Error deleting category:", error);
         toast({
@@ -345,3 +344,5 @@ function CategoryPage() {
 }
 
 export default withAuth(CategoryPage);
+
+    
