@@ -79,7 +79,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
                     <Link
                       href={href}
                       className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                          'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-200 hover:text-primary hover:bg-muted',
                           isActive && 'bg-muted text-primary'
                       )}
                     >

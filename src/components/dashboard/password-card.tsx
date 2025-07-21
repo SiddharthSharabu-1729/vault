@@ -203,7 +203,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
 
   return (
     <>
-      <Card className="flex flex-col transition-all hover:shadow-md">
+      <Card className="flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="flex-row items-start gap-4 space-y-0 pb-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
             <IconComponent className="h-6 w-6 text-muted-foreground" />
