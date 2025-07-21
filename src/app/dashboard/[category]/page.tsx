@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
 import type { VaultEntry, Category } from '@/lib/data';
-import { PlusCircle, LoaderCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, LoaderCircle, Trash2, KeyRound, Lock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -189,6 +189,10 @@ function CategoryPage() {
     return category ? category.name : 'Vault Entries';
   }
 
+  const passwordEntries = filteredEntries.filter(e => e.type === 'password');
+  const apiKeyEntries = filteredEntries.filter(e => e.type === 'apiKey');
+  const noteEntries = filteredEntries.filter(e => e.type === 'note');
+
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
@@ -249,16 +253,55 @@ function CategoryPage() {
                     <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
                   </div>
                 ) : filteredEntries.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredEntries.map((entry) => (
-                      <EntryCard
-                        key={entry.id}
-                        entry={entry}
-                        onUpdateEntry={handleUpdateEntry}
-                        onDeleteEntry={handleDeleteEntry}
-                        categories={categories}
-                      />
-                    ))}
+                  <div className="space-y-8">
+                    {passwordEntries.length > 0 && (
+                      <div>
+                        <h2 className="text-xl font-semibold flex items-center mb-4"><Lock className="mr-3 h-5 w-5 text-muted-foreground"/> Passwords</h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                          {passwordEntries.map((entry) => (
+                            <EntryCard
+                              key={entry.id}
+                              entry={entry}
+                              onUpdateEntry={handleUpdateEntry}
+                              onDeleteEntry={handleDeleteEntry}
+                              categories={categories}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                     {apiKeyEntries.length > 0 && (
+                      <div>
+                        <h2 className="text-xl font-semibold flex items-center mb-4"><KeyRound className="mr-3 h-5 w-5 text-muted-foreground"/> API Keys</h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                          {apiKeyEntries.map((entry) => (
+                            <EntryCard
+                              key={entry.id}
+                              entry={entry}
+                              onUpdateEntry={handleUpdateEntry}
+                              onDeleteEntry={handleDeleteEntry}
+                              categories={categories}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                     {noteEntries.length > 0 && (
+                      <div>
+                        <h2 className="text-xl font-semibold flex items-center mb-4"><StickyNote className="mr-3 h-5 w-5 text-muted-foreground"/> Secure Notes</h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                          {noteEntries.map((entry) => (
+                            <EntryCard
+                              key={entry.id}
+                              entry={entry}
+                              onUpdateEntry={handleUpdateEntry}
+                              onDeleteEntry={handleDeleteEntry}
+                              categories={categories}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12">
