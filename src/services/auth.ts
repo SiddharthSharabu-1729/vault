@@ -35,3 +35,12 @@ export const doSignOut = () => {
 export const onAuthChanged = (callback: (user: User | null) => void) => {
     return onAuthStateChanged(auth, callback);
 }
+
+export const getCurrentUser = (): Promise<User | null> => {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+};
