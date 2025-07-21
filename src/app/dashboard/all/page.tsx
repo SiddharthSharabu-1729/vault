@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { PasswordGenerator } from '@/components/dashboard/password-generator';
-import { PasswordCard } from '@/components/dashboard/password-card';
-import type { PasswordEntry, Category } from '@/lib/data';
+import { EntryForm } from '@/components/dashboard/password-generator';
+import { EntryCard } from '@/components/dashboard/password-card';
+import type { VaultEntry, Category } from '@/lib/data';
 import { PlusCircle, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,7 @@ import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
-import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory, deleteCategory } from '@/services/firestore';
+import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -28,9 +28,9 @@ function AllEntriesPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [entries, setEntries] = useState<PasswordEntry[]>([]);
+  const [entries, setEntries] = useState<VaultEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredEntries, setFilteredEntries] = useState<PasswordEntry[]>([]);
+  const [filteredEntries, setFilteredEntries] = useState<VaultEntry[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
 
   const searchParams = useSearchParams();
@@ -71,8 +71,8 @@ function AllEntriesPage() {
     const newFilteredEntries = entries.filter((entry) => {
       const inSearch =
         searchTerm === '' ||
-        entry.serviceName.toLowerCase().includes(searchTerm) ||
-        entry.username.toLowerCase().includes(searchTerm);
+        entry.title.toLowerCase().includes(searchTerm) ||
+        (entry.username && entry.username.toLowerCase().includes(searchTerm));
       return inSearch;
     });
 
@@ -97,12 +97,12 @@ function AllEntriesPage() {
     }
   };
 
-  const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>, masterPassword: string) => {
+  const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
     try {
       await addEntry(newEntryData, masterPassword);
       toast({
         title: 'Entry Added',
-        description: `${newEntryData.serviceName} has been saved to your vault.`,
+        description: `${newEntryData.title} has been saved to your vault.`,
       });
       await fetchAllData();
     } catch (error) {
@@ -114,13 +114,12 @@ function AllEntriesPage() {
     }
   };
 
-  const handleUpdateEntry = async (updatedEntry: PasswordEntry, masterPassword?: string) => {
-    const { id, ...dataToUpdate } = updatedEntry;
+  const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
     try {
-      await updateEntry(id, dataToUpdate, masterPassword);
+      await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
        toast({
         title: 'Entry Updated',
-        description: `${updatedEntry.serviceName} has been updated.`,
+        description: `${updatedEntry.title} has been updated.`,
       });
        await fetchAllData();
     } catch (error) {
@@ -162,15 +161,15 @@ function AllEntriesPage() {
                   <div>
                     <CardTitle>All Vault Entries</CardTitle>
                     <CardDescription>
-                      Manage your saved passwords and sensitive information.
+                      Manage your saved passwords, notes, and API keys.
                     </CardDescription>
                   </div>
-                  <PasswordGenerator onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
+                  <EntryForm onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
                     <Button>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add New
                     </Button>
-                  </PasswordGenerator>
+                  </EntryForm>
                 </div>
               </CardHeader>
               <CardContent>
@@ -181,7 +180,7 @@ function AllEntriesPage() {
                 ) : filteredEntries.length > 0 ? (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredEntries.map((entry) => (
-                      <PasswordCard
+                      <EntryCard
                         key={entry.id}
                         entry={entry}
                         onUpdateEntry={handleUpdateEntry}
@@ -194,7 +193,7 @@ function AllEntriesPage() {
                   <div className="text-center py-12">
                     <h3 className="text-lg font-medium">No entries yet</h3>
                     <p className="text-sm text-muted-foreground">
-                      Click &quot;Add New&quot; to secure your first password.
+                      Click &quot;Add New&quot; to secure your first item.
                     </p>
                   </div>
                 )}

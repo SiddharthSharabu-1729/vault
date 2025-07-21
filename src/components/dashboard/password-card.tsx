@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Edit, MoreVertical, Trash2, Globe, Check, Eye, EyeOff, KeyRound, LoaderCircle } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Globe, Check, Eye, EyeOff, KeyRound, LoaderCircle, User, StickyNote, FileKey } from 'lucide-react';
 import type { Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,52 +42,59 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-import type { PasswordEntry, Category } from '@/lib/data';
+import type { VaultEntry, Category } from '@/lib/data';
 import { iconMap } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { PasswordGenerator } from './password-generator';
+import { EntryForm } from './password-generator';
 import { decryptPassword } from '@/services/crypto';
 
 
-interface PasswordCardProps {
-  entry: PasswordEntry;
-  onUpdateEntry: (updatedEntry: PasswordEntry, masterPassword?: string) => void;
+interface EntryCardProps {
+  entry: VaultEntry;
+  onUpdateEntry: (updatedEntry: VaultEntry, masterPassword?: string) => void;
   onDeleteEntry: (id: string) => void;
   categories: Category[];
 }
 
-export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }: PasswordCardProps) {
+export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: EntryCardProps) {
   const { toast } = useToast();
   const IconComponent = (iconMap[entry.icon] || Globe) as Icon;
   
-  const [decryptedPassword, setDecryptedPassword] = useState('');
+  const [decryptedValue, setDecryptedValue] = useState('');
   const [copied, setCopied] = useState(false);
   const [showDecryptDialog, setShowDecryptDialog] = useState(false);
   const [masterPassword, setMasterPassword] = useState('');
   const [isDecrypting, setIsDecrypting] = useState(false);
 
 
-  const handleCopy = () => {
-    if (!decryptedPassword) {
+  const handleCopy = (value: string | undefined, type: string) => {
+    if (!value) return;
+    
+    let valueToCopy = value;
+    if (entry.type !== 'note' && !decryptedValue) {
       toast({
         variant: 'destructive',
-        title: 'Password not revealed',
-        description: 'Please reveal the password before copying.',
+        title: 'Value not revealed',
+        description: `Please reveal the ${type} before copying.`,
       });
       return;
     }
-    navigator.clipboard.writeText(decryptedPassword);
+    if (entry.type !== 'note') {
+        valueToCopy = decryptedValue;
+    }
+
+    navigator.clipboard.writeText(valueToCopy);
     setCopied(true);
     toast({
-      title: 'Password Copied',
-      description: `Password for ${entry.serviceName} has been copied to your clipboard.`,
+      title: `${type} Copied`,
+      description: `The ${type} for ${entry.title} has been copied to your clipboard.`,
     });
     setTimeout(() => setCopied(false), 2000);
   };
   
-  const handleTogglePasswordVisibility = () => {
-    if (decryptedPassword) {
-      setDecryptedPassword('');
+  const handleToggleVisibility = () => {
+    if (decryptedValue) {
+      setDecryptedValue('');
     } else {
       setShowDecryptDialog(true);
     }
@@ -100,25 +107,97 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }
     }
     setIsDecrypting(true);
     try {
-      const plainText = await decryptPassword(entry.password, masterPassword);
-      setDecryptedPassword(plainText);
+      const encryptedValue = entry.type === 'password' ? entry.password : entry.apiKey;
+      if (!encryptedValue) throw new Error("No value to decrypt");
+
+      const plainText = await decryptPassword(encryptedValue, masterPassword);
+      setDecryptedValue(plainText);
       setShowDecryptDialog(false);
       setMasterPassword('');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Decryption Failed',
-        description: error.message || 'Could not decrypt the password. Please check your master password.',
+        description: error.message || `Could not decrypt the value. Please check your master password.`,
       });
     } finally {
       setIsDecrypting(false);
     }
   };
   
-  const handleUpdate = (updatedEntryData: Omit<PasswordEntry, 'id'>, masterPass?: string) => {
-    onUpdateEntry({ ...updatedEntryData, id: entry.id }, masterPass);
+  const handleUpdate = (updatedEntryData: VaultEntry, masterPass?: string) => {
+    onUpdateEntry(updatedEntryData, masterPass);
   };
 
+  const renderCardContent = () => {
+    switch (entry.type) {
+      case 'password':
+        return (
+          <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
+              <button onClick={handleToggleVisibility} className="flex-1 text-left">
+                  {decryptedValue ? (
+                      <span className="font-mono text-sm tracking-wider text-foreground">{decryptedValue}</span>
+                  ) : (
+                      <span className="font-mono text-sm tracking-widest text-muted-foreground">••••••••••••</span>
+                  )}
+              </button>
+              <div className="flex items-center">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleToggleVisibility}>
+                      {decryptedValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="sr-only">{decryptedValue ? 'Hide password' : 'Show password'}</span>
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(entry.password, 'Password')}>
+                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      <span className="sr-only">Copy password</span>
+                  </Button>
+              </div>
+          </div>
+        );
+      case 'apiKey':
+        return (
+          <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
+            <button onClick={handleToggleVisibility} className="flex-1 text-left truncate">
+                {decryptedValue ? (
+                    <span className="font-mono text-sm tracking-wider text-foreground">{decryptedValue}</span>
+                ) : (
+                    <span className="font-mono text-sm tracking-widest text-muted-foreground">••••••••••••••••••••</span>
+                )}
+            </button>
+            <div className="flex items-center">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleToggleVisibility}>
+                    {decryptedValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <span className="sr-only">{decryptedValue ? 'Hide API Key' : 'Show API Key'}</span>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(entry.apiKey, 'API Key')}>
+                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    <span className="sr-only">Copy API Key</span>
+                </Button>
+            </div>
+        </div>
+        );
+      case 'note':
+        return (
+          <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words p-3 bg-muted rounded-md max-h-24 overflow-y-auto">
+            {entry.notes}
+          </div>
+        )
+      default:
+        return null;
+    }
+  }
+
+  const getCardDescription = () => {
+    switch (entry.type) {
+        case 'password':
+            return <p className="flex items-center text-sm text-muted-foreground"><User className="w-3 h-3 mr-2"/> {entry.username}</p>;
+        case 'apiKey':
+            return <p className="flex items-center text-sm text-muted-foreground"><FileKey className="w-3 h-3 mr-2"/> API Key</p>;
+        case 'note':
+            return <p className="flex items-center text-sm text-muted-foreground"><StickyNote className="w-3 h-3 mr-2"/> Secure Note</p>;
+        default:
+            return null;
+    }
+  }
 
   return (
     <>
@@ -128,8 +207,8 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }
             <IconComponent className="h-6 w-6 text-muted-foreground" />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-lg">{entry.serviceName}</CardTitle>
-            <CardDescription>{entry.username}</CardDescription>
+            <CardTitle className="text-lg">{entry.title}</CardTitle>
+            <CardDescription>{getCardDescription()}</CardDescription>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -138,12 +217,12 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <PasswordGenerator onAddEntry={()=>{}} onUpdateEntry={handleUpdate} entry={entry} categories={categories}>
+              <EntryForm onAddEntry={()=>{}} onUpdateEntry={handleUpdate} entry={entry} categories={categories}>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
-              </PasswordGenerator>
+              </EntryForm>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
@@ -159,7 +238,7 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                       This action cannot be undone. This will permanently delete the entry for 
-                      <span className="font-semibold"> {entry.serviceName}</span>.
+                      <span className="font-semibold"> {entry.title}</span>.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -177,30 +256,12 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }
           </DropdownMenu>
         </CardHeader>
         <CardContent className="flex-1">
-          <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
-              <button onClick={handleTogglePasswordVisibility} className="flex-1 text-left">
-                  {decryptedPassword ? (
-                      <span className="font-mono text-sm tracking-wider text-foreground">{decryptedPassword}</span>
-                  ) : (
-                      <span className="font-mono text-sm tracking-widest text-muted-foreground">••••••••••••</span>
-                  )}
-              </button>
-              <div className="flex items-center">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleTogglePasswordVisibility}>
-                      {decryptedPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      <span className="sr-only">{decryptedPassword ? 'Hide password' : 'Show password'}</span>
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopy}>
-                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      <span className="sr-only">Copy password</span>
-                  </Button>
-              </div>
-          </div>
+          {renderCardContent()}
         </CardContent>
         {entry.url && (
           <CardFooter>
               <a
-              href={`https://${entry.url}`}
+              href={!entry.url.startsWith('http') ? `https://${entry.url}` : entry.url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-muted-foreground hover:text-primary transition-colors truncate"
@@ -214,9 +275,9 @@ export function PasswordCard({ entry, onUpdateEntry, onDeleteEntry, categories }
       <Dialog open={showDecryptDialog} onOpenChange={setShowDecryptDialog}>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
-                <DialogTitle>Unlock Password</DialogTitle>
+                <DialogTitle>Unlock Value</DialogTitle>
                 <DialogDescription>
-                    Enter your master password to reveal the password for {entry.serviceName}.
+                    Enter your master password to reveal the value for {entry.title}.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">

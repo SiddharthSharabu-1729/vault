@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus } from 'lucide-react';
+import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus, KeyRound, StickyNote } from 'lucide-react';
 
 export type Category = {
   id: string;
@@ -24,17 +24,30 @@ export const iconMap: { [key: string]: LucideIcon } = {
   Tv,
   Folder,
   FolderPlus,
+  KeyRound,
+  StickyNote,
 };
 
 
-export type PasswordEntry = {
+export type EntryType = 'password' | 'note' | 'apiKey';
+
+export type VaultEntry = {
   id: string;
-  serviceName: string;
-  username: string;
-  url: string;
+  type: EntryType;
+  title: string;
   category: string;
   icon: string;
-  password: string;
+  
+  // Password fields
+  username?: string;
+  url?: string;
+  password?: string; // encrypted
+
+  // Note field
+  notes?: string;
+  
+  // API Key field
+  apiKey?: string; // encrypted
 };
 
-export const passwordEntries: PasswordEntry[] = [];
+export const passwordEntries: VaultEntry[] = [];

@@ -1,6 +1,6 @@
 import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc } from 'firebase/firestore';
-import type { PasswordEntry } from '@/lib/data';
+import type { VaultEntry } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
 import { encryptPassword } from './crypto';
@@ -76,39 +76,44 @@ export async function deleteCategory(categoryId: string) {
 }
 
 
-// == PASSWORD ENTRY FUNCTIONS ==
+// == VAULT ENTRY FUNCTIONS ==
 
-export async function getEntries(): Promise<PasswordEntry[]> {
+export async function getEntries(): Promise<VaultEntry[]> {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         return [];
     }
     const entriesCollection = collection(db, 'users', userId, 'entries');
     const entrySnapshot = await getDocs(entriesCollection);
-    const entryList = entrySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as PasswordEntry));
+    const entryList = entrySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as VaultEntry));
     // Passwords are now fetched encrypted. They will be decrypted on-demand in the UI.
     return entryList;
 }
 
-export async function addEntry(entryData: Omit<PasswordEntry, 'id'>, masterPassword: string): Promise<PasswordEntry> {
+export async function addEntry(entryData: Omit<VaultEntry, 'id'>, masterPassword: string): Promise<VaultEntry> {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         throw new Error("User is not authenticated. Cannot add entry.");
     }
 
-    // Encrypt the password before storing
-    const encryptedPassword = await encryptPassword(entryData.password, masterPassword);
-    const dataToStore = {
-        ...entryData,
-        password: encryptedPassword,
-    };
+    const dataToStore: Omit<VaultEntry, 'id'> = { ...entryData };
+
+    // Encrypt the password if it exists
+    if (dataToStore.password) {
+        dataToStore.password = await encryptPassword(dataToStore.password, masterPassword);
+    }
+    
+    // Encrypt the API key if it exists
+    if (dataToStore.apiKey) {
+        dataToStore.apiKey = await encryptPassword(dataToStore.apiKey, masterPassword);
+    }
 
     const entriesCollection = collection(db, 'users', userId, 'entries');
     const docRef = await addDoc(entriesCollection, dataToStore);
     return { ...dataToStore, id: docRef.id };
 }
 
-export async function updateEntry(entryId: string, entryData: Partial<Omit<PasswordEntry, 'id'>>, masterPassword?: string) {
+export async function updateEntry(entryId: string, entryData: Partial<Omit<VaultEntry, 'id'>>, masterPassword?: string) {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         throw new Error("User is not authenticated. Cannot update entry.");
@@ -116,9 +121,14 @@ export async function updateEntry(entryId: string, entryData: Partial<Omit<Passw
 
     const dataToUpdate = { ...entryData };
 
-    // If a new password is being provided, encrypt it.
-    if (masterPassword && entryData.password) {
-        dataToUpdate.password = await encryptPassword(entryData.password, masterPassword);
+    // If a master password is provided, re-encrypt sensitive fields
+    if (masterPassword) {
+        if (entryData.password) {
+            dataToUpdate.password = await encryptPassword(entryData.password, masterPassword);
+        }
+        if (entryData.apiKey) {
+            dataToUpdate.apiKey = await encryptPassword(entryData.apiKey, masterPassword);
+        }
     }
     
     const entryRef = doc(db, 'users', userId, 'entries', entryId);
