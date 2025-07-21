@@ -69,29 +69,20 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
   const [isDecrypting, setIsDecrypting] = useState(false);
 
 
-  const handleCopy = (value: string | undefined, type: string) => {
-    if (!value) return;
-    
-    let valueToCopy = value;
-    if (entry.type !== 'note' && !decryptedValue) {
-      toast({
-        variant: 'destructive',
-        title: 'Value Not Revealed',
-        description: `Please reveal the ${type} before copying.`,
-      });
-      return;
+  const handleCopy = (type: string) => {
+    // If value is already revealed, copy it directly
+    if (decryptedValue) {
+        navigator.clipboard.writeText(decryptedValue);
+        setCopied(true);
+        toast({
+            title: `${type} Copied`,
+            description: `The ${type} for ${entry.title} has been copied to your clipboard.`,
+        });
+        setTimeout(() => setCopied(false), 2000);
+    } else {
+        // Otherwise, prompt for master password to decrypt and copy
+        setShowCopyDialog(true);
     }
-    if (entry.type !== 'note') {
-        valueToCopy = decryptedValue;
-    }
-
-    navigator.clipboard.writeText(valueToCopy);
-    setCopied(true);
-    toast({
-      title: `${type} Copied`,
-      description: `The ${type} for ${entry.title} has been copied to your clipboard.`,
-    });
-    setTimeout(() => setCopied(false), 2000);
   };
   
   const handleToggleVisibility = () => {
@@ -182,7 +173,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                       {decryptedValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       <span className="sr-only">{decryptedValue ? 'Hide password' : 'Show password'}</span>
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(entry.password, 'Password')}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy('Password')}>
                       {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       <span className="sr-only">Copy password</span>
                   </Button>
@@ -204,7 +195,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                     {decryptedValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     <span className="sr-only">{decryptedValue ? 'Hide API Key' : 'Show API Key'}</span>
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(entry.apiKey, 'API Key')}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy('API Key')}>
                     {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                     <span className="sr-only">Copy API Key</span>
                 </Button>
@@ -259,12 +250,6 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                   Edit
                 </DropdownMenuItem>
               </EntryForm>
-              { (entry.type === 'password' || entry.type === 'apiKey') && (
-                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowCopyDialog(true); }}>
-                  <CopyCheck className="mr-2 h-4 w-4" />
-                  Copy with Password
-                </DropdownMenuItem>
-              )}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
