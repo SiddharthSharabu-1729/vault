@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { Category } from '@/lib/data';
-import { getIconForUrl } from '@/ai/flows/get-icon-flow';
+import { getIconForKeyword } from '@/lib/utils';
 
 interface CategoryCreatorProps {
   children: React.ReactNode;
@@ -47,16 +47,9 @@ export function CategoryCreator({
       return;
     }
     setIsSaving(true);
-    let iconName = 'Folder'; // Default icon
-    try {
-      // We use the category name as a proxy for a URL to get an icon
-      const result = await getIconForUrl({ url: name });
-      iconName = result.iconName;
-    } catch (error) {
-      console.error("Failed to get icon from AI for category", error);
-    }
     
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const iconName = getIconForKeyword(name, 'Folder');
 
     const newCategory = {
       name,

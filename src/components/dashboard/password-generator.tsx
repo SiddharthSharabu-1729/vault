@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -27,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getIconForUrl } from '@/ai/flows/get-icon-flow';
+import { getIconForKeyword } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -181,19 +180,15 @@ export function EntryForm({
     }
     setIsSaving(true);
     
-    let finalIcon = icon;
-    if (url.trim() && (!isEditing || url.trim() !== entry?.url)) {
-      try {
-        const result = await getIconForUrl({ url: url.trim() });
-        finalIcon = result.iconName;
-      } catch (error) {
-        console.error("Failed to get icon from AI", error);
-        finalIcon = 'Globe';
-      }
+    let finalIcon = 'Globe';
+    const searchString = url.trim() || title;
+
+    if (entryType === 'password') {
+        finalIcon = getIconForKeyword(searchString, 'Globe');
     } else if (entryType === 'note') {
         finalIcon = 'StickyNote';
     } else if (entryType === 'apiKey') {
-        finalIcon = 'KeyRound';
+        finalIcon = getIconForKeyword(searchString, 'FileKey');
     }
 
     const baseData = {
