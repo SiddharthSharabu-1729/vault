@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus, KeyRound, StickyNote } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
 
+export const runtime = 'edge';
+
 export type Category = {
   id: string;
   name: string;
