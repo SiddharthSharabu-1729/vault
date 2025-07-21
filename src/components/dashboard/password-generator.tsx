@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Copy, RefreshCw, Save, LoaderCircle } from 'lucide-react';
+import { Copy, RefreshCw, Save, LoaderCircle, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,10 +28,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getIconForUrl } from '@/ai/flows/get-icon-flow';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
 
 interface PasswordGeneratorProps {
   children: React.ReactNode;
-  onAddEntry: (newEntry: Omit<PasswordEntry, 'id'>) => void;
+  onAddEntry: (newEntry: Omit<PasswordEntry, 'id'>, masterPassword: string) => void;
+  onUpdateEntry: (updatedEntry: PasswordEntry, masterPassword?: string) => void;
   entry?: PasswordEntry;
   categories: Category[];
 }
@@ -39,50 +42,45 @@ interface PasswordGeneratorProps {
 export function PasswordGenerator({
   children,
   onAddEntry,
+  onUpdateEntry,
   entry,
   categories
 }: PasswordGeneratorProps) {
   const [open, setOpen] = useState(false);
   const isEditing = !!entry;
 
-  const [length, setLength] = useState(entry ? entry.password.length : 16);
+  const [length, setLength] = useState(isEditing ? 16 : 16); // Default to 16, don't derive from encrypted length
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(true);
   
-  const [password, setPassword] = useState(entry ? entry.password : '');
-  const [serviceName, setServiceName] = useState(entry ? entry.serviceName : '');
-  const [username, setUsername] = useState(entry ? entry.username : '');
-  const [url, setUrl] = useState(entry ? entry.url ?? '' : '');
-  const [category, setCategory] = useState(entry ? entry.category : '');
-  const [icon, setIcon] = useState(entry ? entry.icon : 'Globe');
+  const [password, setPassword] = useState('');
+  const [serviceName, setServiceName] = useState('');
+  const [username, setUsername] = useState('');
+  const [url, setUrl] = useState('');
+  const [category, setCategory] = useState('');
+  const [icon, setIcon] = useState('Globe');
+  const [masterPassword, setMasterPassword] = useState('');
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   
   const { toast } = useToast();
   
   const resetForm = useCallback(() => {
-    if (!isEditing) {
-        setServiceName('');
-        setUsername('');
-        setUrl('');
-        setCategory('');
-        setLength(16);
-        setIncludeUppercase(true);
-        setIncludeNumbers(true);
-        setIncludeSymbols(true);
-        setIcon('Globe');
-        setPassword('');
-    } else if (entry) {
-        setServiceName(entry.serviceName);
-        setUsername(entry.username);
-        setUrl(entry.url ?? '');
-        setCategory(entry.category);
-        setPassword(entry.password);
-        setIcon(entry.icon);
-        setLength(entry.password.length);
-    }
-  }, [isEditing, entry]);
+    setServiceName(entry?.serviceName ?? '');
+    setUsername(entry?.username ?? '');
+    setUrl(entry?.url ?? '');
+    setCategory(entry?.category ?? '');
+    setIcon(entry?.icon ?? 'Globe');
+    setPassword(''); // Clear password field
+    setMasterPassword('');
+    setPasswordChanged(!isEditing); // New entries always need a password
+    setLength(16);
+    setIncludeUppercase(true);
+    setIncludeNumbers(true);
+    setIncludeSymbols(true);
+  }, [entry, isEditing]);
 
 
   const generatePassword = useCallback(() => {
@@ -111,21 +109,21 @@ export function PasswordGenerator({
       newPassword += charset.charAt(Math.floor(Math.random() * charset.length));
     }
     setPassword(newPassword);
+    setPasswordChanged(true);
   }, [length, includeUppercase, includeNumbers, includeSymbols, toast]);
   
-  // Effect to handle initial password generation and form reset
   useEffect(() => {
     if (open) {
       resetForm();
-      if (entry) {
-        setCategory(entry.category);
-      } else if (categories.length > 0) {
+      if (!isEditing) {
+        generatePassword();
+      }
+      if (categories.length > 0 && !entry?.category) {
         setCategory(categories[0].slug);
       }
     }
-  }, [open, isEditing, entry, categories, resetForm]);
-
-  // Effect to regenerate password when options change
+  }, [open, isEditing, entry, categories, resetForm, generatePassword]);
+  
   useEffect(() => {
     if (open && !isEditing) {
       generatePassword();
@@ -144,17 +142,18 @@ export function PasswordGenerator({
   };
 
   const handleSave = async () => {
-    if (!serviceName || !username || !password || !category) {
+    if (!serviceName || !username || !category || !masterPassword || (passwordChanged && !password)) {
       toast({
         variant: 'destructive',
         title: 'Missing Fields',
-        description: 'Please fill in all required fields.',
+        description: 'Please fill in Service Name, Username, Category, and Master Password.',
       });
       return;
     }
     setIsSaving(true);
+    
     let finalIcon = icon;
-    if (url.trim() && (!isEditing || url !== entry?.url)) {
+    if (url.trim() && (!isEditing || url.trim() !== entry?.url)) {
       try {
         const result = await getIconForUrl({ url: url.trim() });
         finalIcon = result.iconName;
@@ -164,27 +163,34 @@ export function PasswordGenerator({
       }
     }
 
-    const newEntry = {
-      serviceName,
-      username,
-      url,
-      category,
-      password,
-      icon: finalIcon,
-    };
-    
-    onAddEntry(newEntry);
+    if (isEditing && entry) {
+        const updatedEntryData: PasswordEntry = {
+            ...entry,
+            serviceName,
+            username,
+            url: url.trim(),
+            category,
+            icon: finalIcon,
+            // Only update password if it has changed
+            password: passwordChanged ? password : entry.password,
+        };
+        onUpdateEntry(updatedEntryData, passwordChanged ? masterPassword : undefined);
+
+    } else {
+        const newEntry = {
+            serviceName,
+            username,
+            url: url.trim(),
+            category,
+            password,
+            icon: finalIcon,
+        };
+        onAddEntry(newEntry, masterPassword);
+    }
     
     setIsSaving(false);
     setOpen(false);
   };
-  
-  useEffect(() => {
-      if(!open) {
-          resetForm();
-      }
-  }, [open, resetForm]);
-
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -196,7 +202,7 @@ export function PasswordGenerator({
             {isEditing ? 'Update the details for this entry.' : 'Create a strong, unique password for a new account.'}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
           <div className="space-y-2">
             <Label htmlFor="serviceName">Service Name</Label>
             <Input
@@ -240,12 +246,13 @@ export function PasswordGenerator({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Generated Password</Label>
+            <Label>{isEditing && !passwordChanged ? 'New Password (Optional)' : 'Generated Password'}</Label>
             <div className="relative">
               <Input
                 id="password"
                 value={password}
                 readOnly
+                placeholder={isEditing ? 'Fill to change' : ''}
                 className="pr-20 font-mono text-base"
               />
               <div className="absolute inset-y-0 right-0 flex items-center">
@@ -298,6 +305,27 @@ export function PasswordGenerator({
                 checked={includeSymbols}
                 onCheckedChange={setIncludeSymbols}
               />
+            </div>
+          </div>
+           <div className="space-y-2 pt-4">
+             <Alert variant="destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Master Password Required</AlertTitle>
+                <AlertDescription>
+                  Enter your master password to encrypt and save this entry securely.
+                </AlertDescription>
+            </Alert>
+            <Label htmlFor="master-password">Master Password</Label>
+            <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    id="master-password"
+                    type="password"
+                    required
+                    className="pl-10"
+                    value={masterPassword}
+                    onChange={(e) => setMasterPassword(e.target.value)}
+                />
             </div>
           </div>
         </div>

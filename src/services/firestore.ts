@@ -3,6 +3,7 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch } fr
 import type { PasswordEntry } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
+import { encryptPassword } from './crypto';
 
 
 // == CATEGORY FUNCTIONS ==
@@ -53,26 +54,43 @@ export async function getEntries(): Promise<PasswordEntry[]> {
     const entriesCollection = collection(db, 'users', userId, 'entries');
     const entrySnapshot = await getDocs(entriesCollection);
     const entryList = entrySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as PasswordEntry));
+    // Passwords are now fetched encrypted. They will be decrypted on-demand in the UI.
     return entryList;
 }
 
-export async function addEntry(entryData: Omit<PasswordEntry, 'id'>): Promise<PasswordEntry> {
+export async function addEntry(entryData: Omit<PasswordEntry, 'id'>, masterPassword: string): Promise<PasswordEntry> {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         throw new Error("User is not authenticated. Cannot add entry.");
     }
+
+    // Encrypt the password before storing
+    const encryptedPassword = await encryptPassword(entryData.password, masterPassword);
+    const dataToStore = {
+        ...entryData,
+        password: encryptedPassword,
+    };
+
     const entriesCollection = collection(db, 'users', userId, 'entries');
-    const docRef = await addDoc(entriesCollection, entryData);
-    return { ...entryData, id: docRef.id };
+    const docRef = await addDoc(entriesCollection, dataToStore);
+    return { ...dataToStore, id: docRef.id };
 }
 
-export async function updateEntry(entryId: string, entryData: Partial<Omit<PasswordEntry, 'id'>>) {
+export async function updateEntry(entryId: string, entryData: Partial<Omit<PasswordEntry, 'id'>>, masterPassword?: string) {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         throw new Error("User is not authenticated. Cannot update entry.");
     }
+
+    const dataToUpdate = { ...entryData };
+
+    // If a new password is being provided, encrypt it.
+    if (masterPassword && entryData.password) {
+        dataToUpdate.password = await encryptPassword(entryData.password, masterPassword);
+    }
+    
     const entryRef = doc(db, 'users', userId, 'entries', entryId);
-    await updateDoc(entryRef, entryData);
+    await updateDoc(entryRef, dataToUpdate);
 }
 
 export async function deleteEntry(entryId: string) {

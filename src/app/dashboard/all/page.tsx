@@ -95,9 +95,9 @@ function AllEntriesPage() {
     }
   };
 
-  const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>) => {
+  const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>, masterPassword: string) => {
     try {
-      await addEntry(newEntryData);
+      await addEntry(newEntryData, masterPassword);
       toast({
         title: 'Entry Added',
         description: `${newEntryData.serviceName} has been saved to your vault.`,
@@ -112,10 +112,10 @@ function AllEntriesPage() {
     }
   };
 
-  const handleUpdateEntry = async (updatedEntry: PasswordEntry) => {
+  const handleUpdateEntry = async (updatedEntry: PasswordEntry, masterPassword?: string) => {
     const { id, ...dataToUpdate } = updatedEntry;
     try {
-      await updateEntry(id, dataToUpdate);
+      await updateEntry(id, dataToUpdate, masterPassword);
        toast({
         title: 'Entry Updated',
         description: `${updatedEntry.serviceName} has been updated.`,
@@ -163,7 +163,7 @@ function AllEntriesPage() {
                       Manage your saved passwords and sensitive information.
                     </CardDescription>
                   </div>
-                  <PasswordGenerator onAddEntry={handleAddEntry} categories={categories}>
+                  <PasswordGenerator onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
                     <Button>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add New
