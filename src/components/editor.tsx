@@ -1,8 +1,9 @@
 
 'use client'
 
-import { useEditor, EditorContent, EditorProvider, FloatingMenu, BubbleMenu } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { useEffect } from 'react'
 import {
     Bold,
     Italic,
@@ -12,9 +13,6 @@ import {
     Heading1,
     Heading2,
     Heading3,
-    Code,
-    Quote,
-    Minus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
