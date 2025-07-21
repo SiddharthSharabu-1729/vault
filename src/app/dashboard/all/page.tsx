@@ -25,6 +25,7 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
+export const runtime = 'edge';
 
 function AllEntriesPage() {
   const { currentUser } = useAuth();

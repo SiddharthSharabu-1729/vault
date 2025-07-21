@@ -24,6 +24,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChangePasswordForm } from '@/components/dashboard/change-password-form';
 
+export const runtime = 'edge';
 
 function SettingsPage() {
   const { currentUser } = useAuth();
