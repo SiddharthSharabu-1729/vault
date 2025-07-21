@@ -23,6 +23,7 @@ import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCateg
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 function AllEntriesPage() {
@@ -52,7 +53,7 @@ function AllEntriesPage() {
       console.error("Error fetching data:", error);
       toast({
         variant: 'destructive',
-        title: 'Error fetching data',
+        title: 'Error Fetching Data',
         description: 'Could not load your vault. Please try again later.',
       });
     } finally {
@@ -87,15 +88,15 @@ function AllEntriesPage() {
       await addActivityLog('Category Created', `New category "${newCategoryData.name}" was added.`);
       toast({
           title: 'Category Created',
-          description: `${newCategoryData.name} has been added.`,
+          description: `${newCategoryData.name} has been successfully added.`,
       });
       await fetchAllData();
     } catch (error) {
       console.error("Error creating category:", error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create new category.',
+        title: 'Category Creation Failed',
+        description: 'Failed to create the new category. Please try again.',
       });
     }
   };
@@ -112,8 +113,8 @@ function AllEntriesPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to add new entry.',
+        title: 'Save Failed',
+        description: 'Could not save the new entry. Please try again.',
       });
     }
   };
@@ -124,14 +125,14 @@ function AllEntriesPage() {
       await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
        toast({
         title: 'Entry Updated',
-        description: `${updatedEntry.title} has been updated.`,
+        description: `${updatedEntry.title} has been successfully updated.`,
       });
        await fetchAllData();
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to update entry.',
+        title: 'Update Failed',
+        description: 'Could not update the entry. Please try again.',
       });
     }
   };
@@ -148,8 +149,8 @@ function AllEntriesPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to delete entry.',
+        title: 'Deletion Failed',
+        description: 'Could not delete the entry. Please try again.',
       });
     }
   };
@@ -159,7 +160,7 @@ function AllEntriesPage() {
   const noteEntries = filteredEntries.filter(e => e.type === 'note');
 
   return (
-    <div className="flex min-h-screen w-full bg-muted/40">
+    <div className="flex min-h-screen w-full bg-background">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
         <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
@@ -184,8 +185,15 @@ function AllEntriesPage() {
               </CardHeader>
               <CardContent>
                 {pageLoading ? (
-                  <div className="flex justify-center items-center py-12">
-                    <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+                  <div className="space-y-6">
+                    <div className="flex justify-center">
+                        <Skeleton className="h-10 w-2/3" />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pt-6">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <Skeleton key={i} className="h-48 w-full" />
+                      ))}
+                    </div>
                   </div>
                 ) : filteredEntries.length > 0 ? (
                     <Tabs defaultValue="passwords" className="w-full">
@@ -254,9 +262,9 @@ function AllEntriesPage() {
                     </Tabs>
                 ) : (
                   <div className="text-center py-12">
-                    <h3 className="text-lg font-medium">No entries yet</h3>
+                    <h3 className="text-lg font-medium">Your Vault is Empty</h3>
                     <p className="text-sm text-muted-foreground">
-                      Click &quot;Add New&quot; to secure your first item.
+                      Click &quot;Add New&quot; to secure your first password, note, or API key.
                     </p>
                   </div>
                 )}

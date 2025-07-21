@@ -80,7 +80,7 @@ export function EntryForm({
   const { toast } = useToast();
   
   const initializeForm = useCallback(() => {
-    const type = entry?.type ?? entryType;
+    const type = entry?.type ?? 'password';
     setEntryType(type);
     setTitle(entry?.title ?? '');
     setUsername(entry?.username ?? '');
@@ -94,15 +94,19 @@ export function EntryForm({
     setApiKey('');
     setMasterPassword('');
 
-    setPasswordChanged(!isEditing); // New entries always need a new password
-    setApiKeyChanged(!isEditing); // New entries always need a new key
+    setPasswordChanged(false); 
+    setApiKeyChanged(false);
     
     // Reset generator settings
     setLength(16);
     setIncludeUppercase(true);
     setIncludeNumbers(true);
     setIncludeSymbols(true);
-  }, [entry, isEditing, categories, entryType]);
+
+    if (!isEditing && type === 'password') {
+      setPasswordChanged(true);
+    }
+  }, [entry, isEditing, categories]);
 
 
   const generatePassword = useCallback(() => {
@@ -119,7 +123,7 @@ export function EntryForm({
     if (charset.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Cannot generate password',
+        title: 'Cannot Generate Password',
         description: 'Please select at least one character type.',
       });
       setPassword('');
@@ -131,8 +135,10 @@ export function EntryForm({
       newPassword += charset.charAt(Math.floor(Math.random() * charset.length));
     }
     setPassword(newPassword);
-    setPasswordChanged(true);
-  }, [length, includeUppercase, includeNumbers, includeSymbols, toast]);
+    if (entryType === 'password') {
+        setPasswordChanged(true);
+    }
+  }, [length, includeUppercase, includeNumbers, includeSymbols, toast, entryType]);
   
   useEffect(() => {
     if (open) {
@@ -140,11 +146,18 @@ export function EntryForm({
     }
   }, [open, initializeForm]);
   
+  // This hook now intelligently generates passwords only when appropriate.
   useEffect(() => {
-    if (open && entryType === 'password' && !isEditing) {
-      generatePassword();
+    // Only generate if the form is open for a password entry
+    if (open && entryType === 'password') {
+      // If it's a new entry, generate one immediately.
+      if (!isEditing) {
+        generatePassword();
+      }
     }
-  }, [open, isEditing, generatePassword, length, includeUppercase, includeNumbers, includeSymbols, entryType]);
+    // The dependency array ensures this runs whenever settings change,
+    // but the logic inside prevents it from overwriting an edited password.
+  }, [open, isEditing, entryType, length, includeUppercase, includeNumbers, includeSymbols, generatePassword]);
 
 
   const handleCopy = (text: string, type: string) => {
@@ -191,20 +204,34 @@ export function EntryForm({
         type: entryType,
     };
     
-    let entryData: Omit<VaultEntry, 'id'> = { ...baseData };
+    let entryData: Omit<VaultEntry, 'id'>;
     let masterPassForUpdate: string | undefined = masterPassword;
 
     if (entryType === 'password') {
-        entryData = { ...entryData, username, password };
-        if (!isEditing) setPasswordChanged(true);
+        if (!isEditing && !password) {
+          // This case should not happen if generation works, but as a safeguard.
+          toast({ variant: 'destructive', title: 'Missing Password', description: 'Please generate or enter a password.' });
+          setIsSaving(false);
+          return;
+        }
+        entryData = { ...baseData, username, password };
         if (!passwordChanged) masterPassForUpdate = undefined;
     } else if (entryType === 'note') {
-        entryData = { ...entryData, notes };
+        entryData = { ...baseData, notes };
         masterPassForUpdate = undefined; // Notes are not encrypted
     } else if (entryType === 'apiKey') {
-        entryData = { ...entryData, apiKey };
-        if (!isEditing) setApiKeyChanged(true);
+         if (!isEditing && !apiKey) {
+          toast({ variant: 'destructive', title: 'Missing API Key', description: 'Please enter an API key.' });
+          setIsSaving(false);
+          return;
+        }
+        entryData = { ...baseData, apiKey };
         if (!apiKeyChanged) masterPassForUpdate = undefined;
+    } else {
+        // Fallback for unknown type
+        toast({ variant: 'destructive', title: 'Unknown Entry Type' });
+        setIsSaving(false);
+        return;
     }
 
 
@@ -280,8 +307,8 @@ export function EntryForm({
                         <div className="relative">
                         <Input id="password" value={password} onChange={handlePasswordInputChange} placeholder={isEditing ? 'Enter to change' : 'Enter or generate'} className="pr-20 font-mono text-base" />
                         <div className="absolute inset-y-0 right-0 flex items-center">
-                            <Button variant="ghost" size="icon" onClick={generatePassword}><RefreshCw className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleCopy(password, 'Password')}><Copy className="h-4 w-4" /></Button>
+                            <Button type="button" variant="ghost" size="icon" onClick={generatePassword}><RefreshCw className="h-4 w-4" /></Button>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => handleCopy(password, 'Password')}><Copy className="h-4 w-4" /></Button>
                         </div>
                         </div>
                     </div>
@@ -321,7 +348,7 @@ export function EntryForm({
                         <div className="relative">
                             <Input id="apiKey" value={apiKey} onChange={handleApiKeyInputChange} placeholder={isEditing ? "Enter to change key" : "Enter your API key"} className="pr-10 font-mono text-base" />
                             <div className="absolute inset-y-0 right-0 flex items-center">
-                                <Button variant="ghost" size="icon" onClick={() => handleCopy(apiKey, 'API Key')}><Copy className="h-4 w-4" /></Button>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => handleCopy(apiKey, 'API Key')}><Copy className="h-4 w-4" /></Button>
                             </div>
                         </div>
                     </div>
@@ -359,7 +386,7 @@ export function EntryForm({
         </Tabs>
 
         <DialogFooter>
-          <DialogClose asChild><Button variant="outline" disabled={isSaving}>Cancel</Button></DialogClose>
+          <DialogClose asChild><Button type="button" variant="outline" disabled={isSaving}>Cancel</Button></DialogClose>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? (<LoaderCircle className="mr-2 h-4 w-4 animate-spin" />) : (<Save className="mr-2 h-4 w-4" />)}
             {isSaving ? 'Saving...' : 'Save Entry'}

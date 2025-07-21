@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -26,18 +27,18 @@ export function LoginForm() {
     setIsSigningIn(true);
     try {
       await doSignInWithEmailAndPassword(email, password);
+      // No toast on success, just redirect.
       router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message || "An unknown error occurred.",
+        description: error.message || "An unknown error occurred. Please check your credentials.",
       });
       setIsSigningIn(false);
     }
   };
 
-  // Dummy handlers for biometric login for now
   const handleBiometricLogin = () => {
     toast({
         title: 'Feature Not Implemented',

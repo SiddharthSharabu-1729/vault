@@ -11,7 +11,8 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CategoryCreator } from './category-creator';
 import { useAuth } from '@/contexts/authContext';
-import { doSignOut, addActivityLog } from '@/services/auth';
+import { doSignOut } from '@/services/auth';
+import { addActivityLog } from '@/services/firestore';
 import { ThemeToggle } from './theme-toggle';
 import {
   DropdownMenu,
@@ -37,15 +38,20 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    await addActivityLog('User Logged Out', `User ${currentUser?.email} logged out.`);
-    await doSignOut();
-    router.push('/');
+    try {
+        await addActivityLog('User Logged Out', `User ${currentUser?.email} logged out.`);
+        await doSignOut();
+        router.push('/');
+    } catch (error) {
+        console.error('Logout failed:', error);
+        setIsLoggingOut(false);
+    }
   };
 
   const allCategories = [{ name: 'All Entries', slug: 'all', icon: 'LayoutGrid' }, ...categories];
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden w-[220px] flex-col border-r bg-background sm:flex lg:w-[280px]">
+    <aside className="fixed inset-y-0 left-0 z-10 hidden w-[220px] flex-col border-r bg-muted/40 sm:flex lg:w-[280px]">
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/dashboard/all" className="flex items-center gap-2 font-semibold">
           <ShieldCheck className="h-6 w-6 text-primary" />
@@ -64,8 +70,8 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
         {loading ? (
            Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 animate-pulse">
-                  <Skeleton className="h-4 w-4 rounded" />
-                  <Skeleton className="h-4 w-2/3 rounded" />
+                  <Skeleton className="h-4 w-4 rounded-sm" />
+                  <Skeleton className="h-4 w-3/4 rounded-sm" />
               </div>
            ))
         ) : (
@@ -80,7 +86,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
                       href={href}
                       className={cn(
                           'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-200 hover:text-primary hover:bg-muted',
-                          isActive && 'bg-muted text-primary'
+                          isActive && 'bg-muted text-primary font-semibold'
                       )}
                     >
                       <IconComponent className="h-4 w-4" />
@@ -96,7 +102,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
                       <UserIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex flex-col items-start">

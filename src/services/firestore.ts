@@ -56,11 +56,11 @@ export async function deleteCategory(categoryId: string) {
     // 1. Find all entries in the category to be deleted
     const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
     const categoryDoc = await getDoc(categoryRef);
-    const categorySlug = categoryDoc.data()?.slug;
+    const categoryData = categoryDoc.data();
 
-    if (categorySlug) {
+    if (categoryData) {
         const entriesCollection = collection(db, 'users', userId, 'entries');
-        const q = query(entriesCollection, where("category", "==", categorySlug));
+        const q = query(entriesCollection, where("category", "==", categoryData.slug));
         const entriesToDeleteSnapshot = await getDocs(q);
         
         // 2. Add delete operations for each entry to the batch
@@ -161,8 +161,12 @@ export async function addActivityLog(action: string, details: string, userIdOver
       timestamp: serverTimestamp(),
     };
   
-    const activityCollection = collection(db, 'users', userId, 'activity');
-    await addDoc(activityCollection, logData);
+    try {
+        const activityCollection = collection(db, 'users', userId, 'activity');
+        await addDoc(activityCollection, logData);
+    } catch (error) {
+        console.error("Failed to add activity log:", error);
+    }
 }
 
 export async function getActivityLogs(): Promise<ActivityLog[]> {

@@ -75,7 +75,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
     if (entry.type !== 'note' && !decryptedValue) {
       toast({
         variant: 'destructive',
-        title: 'Value not revealed',
+        title: 'Value Not Revealed',
         description: `Please reveal the ${type} before copying.`,
       });
       return;
@@ -103,7 +103,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
 
   const handleDecrypt = async () => {
     if (!masterPassword) {
-      toast({ variant: 'destructive', title: 'Master password is required' });
+      toast({ variant: 'destructive', title: 'Master Password Required' });
       return;
     }
     setIsDecrypting(true);
@@ -294,7 +294,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                             className="pl-10"
                             value={masterPassword}
                             onChange={(e) => setMasterPassword(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleDecrypt()}
+                            onKeyDown={(e) => e.key === 'Enter' && !isDecrypting && handleDecrypt()}
                         />
                     </div>
                 </div>

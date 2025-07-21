@@ -47,8 +47,8 @@ function SettingsPage() {
       console.error("Error fetching settings data:", error);
       toast({
         variant: 'destructive',
-        title: 'Error loading data',
-        description: 'Could not load your settings and activity.',
+        title: 'Error Loading Data',
+        description: 'Could not load your settings and activity log.',
       });
     } finally {
       setPageLoading(false);
@@ -75,19 +75,23 @@ function SettingsPage() {
       console.error("Error creating category:", error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create new category.',
+        title: 'Category Creation Failed',
+        description: 'Failed to create the new category. Please try again.',
       });
     }
   };
   
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Just now';
-    return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
+    try {
+        return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
+    } catch (e) {
+        return 'A while ago';
+    }
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-muted/40">
+    <div className="flex min-h-screen w-full bg-background">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
         <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
@@ -100,34 +104,53 @@ function SettingsPage() {
                   <CardDescription>Your personal account details.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20">
-                            <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser?.email}`} alt="Avatar" />
-                            <AvatarFallback>{currentUser?.email?.[0].toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <h3 className="text-lg font-semibold">{currentUser?.email}</h3>
-                            <p className="text-sm text-muted-foreground">Fortress Vault User</p>
-                        </div>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex items-center">
-                            <Mail className="mr-3 h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm">{currentUser?.email}</span>
-                        </div>
-                         <div className="flex items-center">
-                            <Shield className="mr-3 h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm">Account security is active</span>
-                        </div>
-                         <div className="flex items-center">
-                            <Clock className="mr-3 h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm">Joined on {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'N/A'}</span>
-                        </div>
-                    </div>
+                    {pageLoading ? (
+                        <>
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="h-20 w-20 rounded-full" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-40" />
+                                    <Skeleton className="h-4 w-24" />
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <Skeleton className="h-5 w-full" />
+                                <Skeleton className="h-5 w-full" />
+                                <Skeleton className="h-5 w-full" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20">
+                                    <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser?.email}`} alt="Avatar" />
+                                    <AvatarFallback>{currentUser?.email?.[0].toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                    <h3 className="text-lg font-semibold break-all">{currentUser?.email}</h3>
+                                    <p className="text-sm text-muted-foreground">Fortress Vault User</p>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="flex items-center">
+                                    <Mail className="mr-3 h-5 w-5 text-muted-foreground" />
+                                    <span className="text-sm break-all">{currentUser?.email}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <Shield className="mr-3 h-5 w-5 text-muted-foreground" />
+                                    <span className="text-sm">Account security is active</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <Clock className="mr-3 h-5 w-5 text-muted-foreground" />
+                                    <span className="text-sm">Joined on {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
                 <CardFooter>
                   <ChangePasswordForm>
-                    <Button variant="outline">Change Password</Button>
+                    <Button variant="outline" disabled={pageLoading}>Change Password</Button>
                   </ChangePasswordForm>
                 </CardFooter>
               </Card>
