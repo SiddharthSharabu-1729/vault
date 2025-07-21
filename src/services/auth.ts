@@ -8,14 +8,14 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  setPersistence,
-  inMemoryPersistence,
   type User
 } from 'firebase/auth';
 import { createDefaultCategories } from './firestore';
 
+// By default, Firebase uses 'local' persistence, which is what we want.
+// No need to set persistence manually.
+
 export const doCreateUserWithEmailAndPassword = async (email, password) => {
-    await setPersistence(auth, inMemoryPersistence);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
         await createDefaultCategories(userCredential.user.uid);
@@ -24,7 +24,6 @@ export const doCreateUserWithEmailAndPassword = async (email, password) => {
 }
 
 export const doSignInWithEmailAndPassword = async (email, password) => {
-    await setPersistence(auth, inMemoryPersistence);
     return signInWithEmailAndPassword(auth, email, password);
 }
 

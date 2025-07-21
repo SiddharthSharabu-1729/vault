@@ -1,32 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/authContext';
-import { getCurrentUser } from '@/services/auth';
 import { LoaderCircle } from 'lucide-react';
-import type { User } from 'firebase/auth';
 
 export default function withAuth<P extends object>(WrappedComponent: React.ComponentType<P>) {
   const WithAuthComponent = (props: P) => {
-    const { currentUser: contextUser, isInitialized: contextInitialized } = useAuth();
+    const { currentUser, isInitialized } = useAuth();
     const router = useRouter();
-    const [isVerified, setIsVerified] = useState(false);
 
     useEffect(() => {
-      const verifyUser = async () => {
-        const user = await getCurrentUser();
-        if (user) {
-          setIsVerified(true);
-        } else {
-          router.push('/');
-        }
-      };
-      
-      verifyUser();
-    }, [router]);
+      // If initialization is complete and there's no user, redirect to login.
+      if (isInitialized && !currentUser) {
+        router.push('/');
+      }
+    }, [currentUser, isInitialized, router]);
 
-    if (!isVerified) {
+    // While Firebase is initializing, show a loader.
+    if (!isInitialized || !currentUser) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
@@ -34,6 +26,7 @@ export default function withAuth<P extends object>(WrappedComponent: React.Compo
       );
     }
 
+    // If initialization is complete and there is a user, render the component.
     return <WrappedComponent {...props} />;
   };
 
