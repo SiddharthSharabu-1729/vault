@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { LoaderCircle, CheckCircle, ShieldAlert } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 
 export type ProgressStep = 
   | 'idle'
