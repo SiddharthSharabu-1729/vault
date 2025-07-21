@@ -8,24 +8,24 @@ body {
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 240 8% 12%; /* Lighter Dark Theme */
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 8% 12%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 8% 10%;
     --popover-foreground: 0 0% 98%;
     --primary: 231 48% 48%; /* Deep Indigo: #3F51B5 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 4% 18%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 4% 18%;
     --muted-foreground: 240 5% 64.9%;
     --accent: 266 40% 51%; /* Electric Purple: #7E57C2 */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 240 4% 20%;
+    --input: 240 4% 20%;
     --ring: 231 48% 48%;
     --radius: 0.5rem;
     --chart-1: 220 70% 50%;
@@ -36,24 +36,24 @@ body {
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 240 8% 12%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 8% 12%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 8% 10%;
     --popover-foreground: 0 0% 98%;
     --primary: 231 48% 48%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 4% 18%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 4% 18%;
     --muted-foreground: 240 5% 64.9%;
     --accent: 266 40% 51%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 240 4% 20%;
+    --input: 240 4% 20%;
     --ring: 231 48% 48%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -64,25 +64,25 @@ body {
 }
 
 html[class~="light"] {
-  --background: 240 5.9% 95%; /* Light Gray: #F5F5F5 */
+  --background: 240 10% 97%; /* Softer Light Theme */
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
-  --primary: 231 48% 48%;
+  --primary: 231 44% 44%; /* Less bright primary */
   --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 90%;
+  --secondary: 240 5% 94%;
   --secondary-foreground: 240 10% 3.9%;
-  --muted: 240 4.8% 90%;
+  --muted: 240 5% 94%;
   --muted-foreground: 240 3.8% 46.1%;
   --accent: 266 40% 51%;
   --accent-foreground: 0 0% 98%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 80%;
-  --input: 240 5.9% 80%;
-  --ring: 231 48% 48%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 231 44% 44%;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
