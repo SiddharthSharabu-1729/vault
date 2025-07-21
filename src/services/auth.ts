@@ -42,26 +42,21 @@ export const doSignOut = () => {
 
 export const doChangePassword = async (currentPassword, newPassword) => {
     const user = auth.currentUser;
-    if (!user || !user.email) {
-      throw new Error("User not found or email is missing.");
+    if (!user) {
+      throw new Error("User not found.");
     }
   
-    // Create a credential with the user's email and the current password.
-    const credential = EmailAuthProvider.credential(user.email, currentPassword);
-  
+    // The user should have been recently re-authenticated by `doVerifyPassword`
+    // before this function is called. We can proceed directly to updatePassword.
     try {
-      // Re-authenticate the user to verify their identity.
-      await reauthenticateWithCredential(user, credential);
-  
-      // If re-authentication is successful, update the password.
       await updatePassword(user, newPassword);
       
       // Log the successful password change.
       await addLog('Password Changed', 'User successfully changed their password.');
     } catch (error: any) {
-      // Handle specific re-authentication errors.
-      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        throw new Error('The current password you entered is incorrect.');
+        // This error can still happen if re-authentication was too long ago.
+      if (error.code === 'auth/requires-recent-login') {
+        throw new Error('For security, please verify your current password again to complete this change.');
       }
       console.error("Password change error:", error);
       throw new Error('Failed to change password. Please try again.');
