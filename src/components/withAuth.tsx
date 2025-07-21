@@ -17,7 +17,8 @@ export default function withAuth<P extends object>(WrappedComponent: React.Compo
       }
     }, [currentUser, isInitialized, router]);
 
-    // While Firebase is initializing, show a loader.
+    // While Firebase is initializing, or if there's no user yet, show a loader.
+    // This prevents the wrapped component from rendering until auth is ready.
     if (!isInitialized || !currentUser) {
       return (
         <div className="flex items-center justify-center min-h-screen">

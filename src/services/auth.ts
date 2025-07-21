@@ -13,7 +13,7 @@ import {
 import { createDefaultCategories } from './firestore';
 
 // By default, Firebase uses 'local' persistence, which is what we want.
-// No need to set persistence manually.
+// It ensures the user stays logged in across page reloads.
 
 export const doCreateUserWithEmailAndPassword = async (email, password) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -34,12 +34,3 @@ export const doSignOut = () => {
 export const onAuthChanged = (callback: (user: User | null) => void) => {
     return onAuthStateChanged(auth, callback);
 }
-
-export const getCurrentUser = (): Promise<User | null> => {
-  return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe();
-      resolve(user);
-    });
-  });
-};

@@ -34,7 +34,7 @@ function DashboardPage() {
   const searchParams = useSearchParams();
 
   const fetchAllData = useCallback(async () => {
-    if (!currentUser) return;
+    if (!currentUser) return; // Should not happen due to withAuth, but good practice
 
     setPageLoading(true);
     try {
@@ -57,6 +57,7 @@ function DashboardPage() {
   }, [currentUser, toast]);
 
   useEffect(() => {
+    // currentUser is guaranteed by withAuth, so we can safely fetch data.
     fetchAllData();
   }, [fetchAllData]);
 
