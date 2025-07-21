@@ -5,9 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
-import { NotesView } from '@/components/dashboard/notes-view';
 import type { VaultEntry, Category } from '@/lib/data';
-import { PlusCircle, LoaderCircle, KeyRound, Lock, StickyNote } from 'lucide-react';
+import { PlusCircle, KeyRound, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,16 +20,14 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
 import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
-import { addActivityLog, doVerifyPassword } from '@/services/auth';
+import { addActivityLog } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function AllEntriesPage() {
   const { currentUser } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
 
   const [entries, setEntries] = useState<VaultEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -73,11 +70,12 @@ function AllEntriesPage() {
     const searchTerm = searchParams.get('q')?.toLowerCase() || '';
 
     const newFilteredEntries = entries.filter((entry) => {
+      const isSearchable = entry.type === 'password' || entry.type === 'apiKey';
       const inSearch =
         searchTerm === '' ||
         entry.title.toLowerCase().includes(searchTerm) ||
         (entry.username && entry.username.toLowerCase().includes(searchTerm));
-      return inSearch;
+      return isSearchable && inSearch;
     });
 
     setFilteredEntries(newFilteredEntries);
@@ -158,7 +156,6 @@ function AllEntriesPage() {
 
   const passwordEntries = filteredEntries.filter(e => e.type === 'password');
   const apiKeyEntries = filteredEntries.filter(e => e.type === 'apiKey');
-  const noteEntries = filteredEntries.filter(e => e.type === 'note');
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -173,7 +170,7 @@ function AllEntriesPage() {
                   <div>
                     <CardTitle>All Vault Entries</CardTitle>
                     <CardDescription>
-                      Manage your saved passwords, notes, and API keys.
+                      Manage your saved passwords and API keys.
                     </CardDescription>
                   </div>
                   <EntryForm onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
@@ -198,10 +195,9 @@ function AllEntriesPage() {
                   </div>
                 ) : filteredEntries.length > 0 ? (
                     <Tabs defaultValue="passwords" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="passwords"><Lock className="mr-2 h-4 w-4" /> Passwords ({passwordEntries.length})</TabsTrigger>
                             <TabsTrigger value="apiKeys"><KeyRound className="mr-2 h-4 w-4" /> API Keys ({apiKeyEntries.length})</TabsTrigger>
-                            <TabsTrigger value="notes"><StickyNote className="mr-2 h-4 w-4" /> Notes ({noteEntries.length})</TabsTrigger>
                         </TabsList>
                         <TabsContent value="passwords" className="pt-6">
                             {passwordEntries.length > 0 ? (
@@ -241,21 +237,12 @@ function AllEntriesPage() {
                                 </div>
                             )}
                         </TabsContent>
-                        <TabsContent value="notes" className="pt-6">
-                           <NotesView 
-                                notes={noteEntries} 
-                                categories={categories}
-                                onAddEntry={handleAddEntry}
-                                onUpdateEntry={handleUpdateEntry}
-                                onDeleteEntry={handleDeleteEntry}
-                            />
-                        </TabsContent>
                     </Tabs>
                 ) : (
                   <div className="text-center py-12">
                     <h3 className="text-lg font-medium">Your Vault is Empty</h3>
                     <p className="text-sm text-muted-foreground">
-                      Click &quot;Add New&quot; to secure your first password, note, or API key.
+                      Click &quot;Add New&quot; to secure your first password or API key.
                     </p>
                   </div>
                 )}

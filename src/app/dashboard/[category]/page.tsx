@@ -7,7 +7,7 @@ import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
 import { NotesView } from '@/components/dashboard/notes-view';
 import type { VaultEntry, Category } from '@/lib/data';
-import { PlusCircle, LoaderCircle, Trash2, KeyRound, Lock, StickyNote } from 'lucide-react';
+import { PlusCircle, Trash2, KeyRound, Lock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -49,6 +49,7 @@ function CategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<VaultEntry[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('passwords');
 
   const categorySlug = params.category as string;
   const currentCategory = categories.find(c => c.slug === categorySlug);
@@ -271,7 +272,7 @@ function CategoryPage() {
                     </div>
                   </div>
                 ) : filteredEntries.length > 0 || categorySlug === 'all' ? (
-                    <Tabs defaultValue="passwords" className="w-full">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="passwords"><Lock className="mr-2 h-4 w-4" /> Passwords ({passwordEntries.length})</TabsTrigger>
                             <TabsTrigger value="apiKeys"><KeyRound className="mr-2 h-4 w-4" /> API Keys ({apiKeyEntries.length})</TabsTrigger>
@@ -344,5 +345,3 @@ function CategoryPage() {
 }
 
 export default withAuth(CategoryPage);
-
-    
