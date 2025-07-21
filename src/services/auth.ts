@@ -69,6 +69,12 @@ export const doChangePassword = async (currentPassword, newPassword) => {
 };
 
 export const addActivityLog = async (action: string, details: string) => {
+    // This function can be called from both client and server components.
+    // The Firestore SDK is not fully compatible with the Edge runtime.
+    // We check if `window` is defined to ensure this only runs on the client or in a non-Edge server environment.
+    if (typeof window === 'undefined') {
+        return; // Do not run in Edge runtime
+    }
     const user = auth.currentUser;
     if (user) {
         await addLog(action, details, user.uid);
