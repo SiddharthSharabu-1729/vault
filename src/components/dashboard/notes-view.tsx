@@ -127,7 +127,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[60vh]">
             {/* Editor Pane (Left Side) */}
             <div className="md:col-span-2 lg:col-span-3 flex flex-col border rounded-lg p-4">
-                {notes.length > 0 ? (
+                {notes.length > 0 || activeNote ? (
                     <>
                         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                            <input

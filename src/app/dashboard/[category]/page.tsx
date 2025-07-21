@@ -200,6 +200,89 @@ function CategoryPage() {
   const apiKeyEntries = filteredEntries.filter(e => e.type === 'apiKey');
   const noteEntries = filteredEntries.filter(e => e.type === 'note');
 
+  const renderContent = () => {
+    if (pageLoading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-center">
+                    <Skeleton className="h-10 w-2/3" />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pt-6">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-48 w-full" />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    
+    // Always show tabs for categories, even if empty.
+    return (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="passwords"><Lock className="mr-2 h-4 w-4" /> Passwords ({passwordEntries.length})</TabsTrigger>
+                <TabsTrigger value="apiKeys"><KeyRound className="mr-2 h-4 w-4" /> API Keys ({apiKeyEntries.length})</TabsTrigger>
+                <TabsTrigger value="notes"><StickyNote className="mr-2 h-4 w-4" /> Notes ({noteEntries.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="passwords" className="pt-6">
+                {passwordEntries.length > 0 ? (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {passwordEntries.map((entry) => (
+                            <EntryCard
+                                key={entry.id}
+                                entry={entry}
+                                onUpdateEntry={handleUpdateEntry}
+                                onDeleteEntry={handleDeleteEntry}
+                                categories={categories}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-12">
+                        <h3 className="text-lg font-medium">No Passwords In This Category</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Click &quot;Add New&quot; to create your first password here.
+                        </p>
+                    </div>
+                )}
+            </TabsContent>
+            <TabsContent value="apiKeys" className="pt-6">
+                {apiKeyEntries.length > 0 ? (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {apiKeyEntries.map((entry) => (
+                            <EntryCard
+                                key={entry.id}
+                                entry={entry}
+                                onUpdateEntry={handleUpdateEntry}
+                                onDeleteEntry={handleDeleteEntry}
+                                categories={categories}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-12">
+                        <h3 className="text-lg font-medium">No API Keys In This Category</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Click &quot;Add New&quot; to create your first API key here.
+                        </p>
+                    </div>
+                )}
+            </TabsContent>
+            <TabsContent value="notes" className="pt-6">
+                 <NotesView 
+                    notes={noteEntries} 
+                    categories={categories}
+                    onAddEntry={handleAddEntry}
+                    onUpdateEntry={handleUpdateEntry}
+                    onDeleteEntry={handleDeleteEntry}
+                    activeCategorySlug={categorySlug === 'all' ? undefined : categorySlug}
+                />
+            </TabsContent>
+        </Tabs>
+    );
+  };
+
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
@@ -260,81 +343,7 @@ function CategoryPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {pageLoading ? (
-                  <div className="space-y-6">
-                    <div className="flex justify-center">
-                        <Skeleton className="h-10 w-2/3" />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pt-6">
-                      {Array.from({ length: 4 }).map((_, i) => (
-                        <Skeleton key={i} className="h-48 w-full" />
-                      ))}
-                    </div>
-                  </div>
-                ) : filteredEntries.length > 0 || categorySlug === 'all' ? (
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="passwords"><Lock className="mr-2 h-4 w-4" /> Passwords ({passwordEntries.length})</TabsTrigger>
-                            <TabsTrigger value="apiKeys"><KeyRound className="mr-2 h-4 w-4" /> API Keys ({apiKeyEntries.length})</TabsTrigger>
-                            <TabsTrigger value="notes"><StickyNote className="mr-2 h-4 w-4" /> Notes ({noteEntries.length})</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="passwords" className="pt-6">
-                            {passwordEntries.length > 0 ? (
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    {passwordEntries.map((entry) => (
-                                        <EntryCard
-                                            key={entry.id}
-                                            entry={entry}
-                                            onUpdateEntry={handleUpdateEntry}
-                                            onDeleteEntry={handleDeleteEntry}
-                                            categories={categories}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <p className="text-sm text-muted-foreground">No passwords in this category.</p>
-                                </div>
-                            )}
-                        </TabsContent>
-                        <TabsContent value="apiKeys" className="pt-6">
-                            {apiKeyEntries.length > 0 ? (
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    {apiKeyEntries.map((entry) => (
-                                        <EntryCard
-                                            key={entry.id}
-                                            entry={entry}
-                                            onUpdateEntry={handleUpdateEntry}
-                                            onDeleteEntry={handleDeleteEntry}
-                                            categories={categories}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <p className="text-sm text-muted-foreground">No API keys in this category.</p>
-                                </div>
-                            )}
-                        </TabsContent>
-                        <TabsContent value="notes" className="pt-6">
-                             <NotesView 
-                                notes={noteEntries} 
-                                categories={categories}
-                                onAddEntry={handleAddEntry}
-                                onUpdateEntry={handleUpdateEntry}
-                                onDeleteEntry={handleDeleteEntry}
-                                activeCategorySlug={categorySlug === 'all' ? undefined : categorySlug}
-                            />
-                        </TabsContent>
-                    </Tabs>
-                ) : (
-                  <div className="text-center py-12">
-                    <h3 className="text-lg font-medium">No Entries In This Category</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Click &quot;Add New&quot; to create your first entry here.
-                    </p>
-                  </div>
-                )}
+                {renderContent()}
               </CardContent>
             </Card>
           </div>
