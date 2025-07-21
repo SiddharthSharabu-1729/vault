@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -39,7 +40,7 @@ export function Header({ categories, onAddCategory, loading }: HeaderProps) {
   };
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4">
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
