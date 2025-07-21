@@ -1,3 +1,5 @@
+'use client';
+
 import {
   auth,
 } from '@/lib/firebase';
@@ -6,11 +8,14 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  setPersistence,
+  inMemoryPersistence,
   type User
 } from 'firebase/auth';
 import { createDefaultCategories } from './firestore';
 
 export const doCreateUserWithEmailAndPassword = async (email, password) => {
+    await setPersistence(auth, inMemoryPersistence);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
         await createDefaultCategories(userCredential.user.uid);
@@ -18,7 +23,8 @@ export const doCreateUserWithEmailAndPassword = async (email, password) => {
     return userCredential;
 }
 
-export const doSignInWithEmailAndPassword = (email, password) => {
+export const doSignInWithEmailAndPassword = async (email, password) => {
+    await setPersistence(auth, inMemoryPersistence);
     return signInWithEmailAndPassword(auth, email, password);
 }
 
