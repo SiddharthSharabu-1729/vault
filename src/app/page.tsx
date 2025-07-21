@@ -5,8 +5,6 @@ import { LoginForm } from '@/components/auth/login-form';
 import { useAuth } from '@/contexts/authContext';
 import { ShieldCheck } from 'lucide-react';
 
-export const runtime = 'edge';
-
 export default function LoginPage() {
   const { userLoggedIn } = useAuth();
   const router = useRouter();

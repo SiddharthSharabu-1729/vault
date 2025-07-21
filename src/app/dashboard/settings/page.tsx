@@ -8,7 +8,8 @@ import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, ActivityLog } from '@/lib/data';
-import { getCategories, addCategory, getActivityLogs, addActivityLog } from '@/services/firestore';
+import { getCategories, addCategory, getActivityLogs } from '@/services/firestore';
+import { addActivityLog } from '@/services/auth';
 import {
   Card,
   CardContent,
@@ -23,8 +24,6 @@ import { User, Mail, Shield, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChangePasswordForm } from '@/components/dashboard/change-password-form';
-
-export const runtime = 'edge';
 
 function SettingsPage() {
   const { currentUser } = useAuth();

@@ -19,13 +19,12 @@ import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
-import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory, addActivityLog } from '@/services/firestore';
+import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
+import { addActivityLog } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-
-export const runtime = 'edge';
 
 function AllEntriesPage() {
   const { currentUser } = useAuth();

@@ -8,6 +8,7 @@
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import * as lucide from 'lucide-react';
 
 const GetIconInputSchema = z.object({
   url: z.string().describe('The URL of the service to get an icon for.'),
@@ -21,17 +22,10 @@ const GetIconOutputSchema = z.object({
 });
 export type GetIconOutput = z.infer<typeof GetIconOutputSchema>;
 
-// Static list of common Lucide icons to avoid importing the entire library on the edge.
-const availableIcons = [
-  'Globe', 'Briefcase', 'User', 'Users', 'Banknote', 'Tv', 'Folder', 'KeyRound', 'StickyNote',
-  'Github', 'Twitter', 'Facebook', 'Instagram', 'Linkedin', 'Youtube', 'Twitch', 'Discord',
-  'Slack', 'Figma', 'Dribbble', 'Behance', 'Codepen', 'Gitlab', 'Bitbucket', 'Notion',
-  'Google', 'Apple', 'Amazon', 'Microsoft', 'Netflix', 'Spotify', 'Paypal', 'Stripe',
-  'Mail', 'MessageSquare', 'Phone', 'Calendar', 'Clock', 'Shield', 'Lock', 'Unlock',
-  'Settings', 'Home', 'Search', 'Link', 'ExternalLink', 'Book', 'Bookmark', 'ShoppingBag',
-  'ShoppingCart', 'CreditCard', 'Database', 'Server', 'Cloud', 'Code', 'Terminal', 'Coffee'
-];
-
+// Dynamically get available icons from lucide-react, filtering out non-component exports.
+const availableIcons = Object.keys(lucide).filter(key => 
+    typeof lucide[key as keyof typeof lucide] === 'object' && key !== 'createLucideIcon' && !key.endsWith('Icon')
+);
 
 export async function getIconForUrl(
   input: GetIconInput

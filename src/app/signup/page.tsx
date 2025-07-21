@@ -1,8 +1,6 @@
 import { SignupForm } from '@/components/auth/signup-form';
 import { ShieldCheck } from 'lucide-react';
 
-export const runtime = 'edge';
-
 export default function SignupPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
