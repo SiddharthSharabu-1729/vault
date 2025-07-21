@@ -60,11 +60,32 @@ export const doChangePassword = async (currentPassword, newPassword) => {
       await addLog('Password Changed', 'User successfully changed their password.');
     } catch (error: any) {
       // Handle specific re-authentication errors.
-      if (error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         throw new Error('The current password you entered is incorrect.');
       }
       console.error("Password change error:", error);
       throw new Error('Failed to change password. Please try again.');
+    }
+};
+
+export const doVerifyPassword = async (password: string) => {
+    const user = auth.currentUser;
+    if (!user || !user.email) {
+      throw new Error("User not found or email is missing.");
+    }
+  
+    const credential = EmailAuthProvider.credential(user.email, password);
+  
+    try {
+      await reauthenticateWithCredential(user, credential);
+      // If it doesn't throw, the password is correct.
+      return true;
+    } catch (error: any) {
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        throw new Error('The master password you entered is incorrect.');
+      }
+      console.error("Password verification error:", error);
+      throw new Error('Could not verify master password. Please try again.');
     }
 };
 

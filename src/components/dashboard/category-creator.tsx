@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -22,11 +23,13 @@ import { getIconForKeyword } from '@/lib/utils';
 interface CategoryCreatorProps {
   children: React.ReactNode;
   onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
+  categories: Category[];
 }
 
 export function CategoryCreator({
   children,
   onAddCategory,
+  categories,
 }: CategoryCreatorProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -46,6 +49,17 @@ export function CategoryCreator({
       });
       return;
     }
+
+    // Check for duplicate category name (case-insensitive)
+    if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+        toast({
+            variant: 'destructive',
+            title: 'Duplicate Category',
+            description: `A category named "${name}" already exists.`,
+        });
+        return;
+    }
+
     setIsSaving(true);
     
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -57,11 +71,15 @@ export function CategoryCreator({
       icon: iconName,
     };
     
-    onAddCategory(newCategory);
-    
-    setIsSaving(false);
-    setOpen(false);
-    resetForm();
+    try {
+        await onAddCategory(newCategory);
+    } catch (e) {
+        // Error is handled by the parent component's catch block, no need to toast here
+    } finally {
+        setIsSaving(false);
+        setOpen(false);
+        resetForm();
+    }
   };
   
   return (

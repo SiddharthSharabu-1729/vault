@@ -33,7 +33,7 @@ export function SidebarMobile({ categories, onAddCategory, loading }: SidebarMob
         </Link>
         
         <div className="flex flex-col gap-2">
-            <CategoryCreator onAddCategory={onAddCategory}>
+            <CategoryCreator onAddCategory={onAddCategory} categories={categories}>
                 <Button variant="ghost" className="w-full justify-start text-muted-foreground text-base">
                 <PlusCircle className="mr-2 h-5 w-5" />
                 New Category

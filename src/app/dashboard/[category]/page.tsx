@@ -31,7 +31,7 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
 import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory, deleteCategory } from '@/services/firestore';
-import { addActivityLog } from '@/services/auth';
+import { addActivityLog, doVerifyPassword } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -106,12 +106,12 @@ function CategoryPage() {
           description: `${newCategoryData.name} has been successfully added.`,
       });
       await fetchAllData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating category:", error);
       toast({
         variant: 'destructive',
         title: 'Category Creation Failed',
-        description: 'Failed to create the new category. Please try again.',
+        description: error.message || 'Failed to create the new category. Please try again.',
       });
     }
   };
@@ -138,6 +138,7 @@ function CategoryPage() {
 
   const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
     try {
+      // Password validation is now handled inside EntryForm
       await addEntry(newEntryData, masterPassword);
       await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
       toast({
@@ -146,6 +147,7 @@ function CategoryPage() {
       });
       await fetchAllData();
     } catch (error) {
+      // The toast for save failure is now more generic as password validation is separate
       toast({
         variant: 'destructive',
         title: 'Save Failed',
@@ -156,6 +158,7 @@ function CategoryPage() {
 
   const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
     try {
+      // Password validation is now handled inside EntryForm
       await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
       await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
        toast({
@@ -244,7 +247,12 @@ function CategoryPage() {
                             </AlertDialogContent>
                         </AlertDialog>
                     )}
-                    <EntryForm onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
+                    <EntryForm 
+                      onAddEntry={handleAddEntry} 
+                      onUpdateEntry={handleUpdateEntry} 
+                      categories={categories}
+                      activeCategorySlug={categorySlug === 'all' ? undefined : categorySlug}
+                    >
                       <Button>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add New

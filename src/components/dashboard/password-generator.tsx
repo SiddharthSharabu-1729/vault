@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -29,8 +30,9 @@ import {
 import { getIconForKeyword } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '../ui/textarea';
+import { doVerifyPassword } from '@/services/auth';
 
 
 interface EntryFormProps {
@@ -39,6 +41,7 @@ interface EntryFormProps {
   onUpdateEntry: (updatedEntry: VaultEntry, masterPassword?: string) => void;
   entry?: VaultEntry;
   categories: Category[];
+  activeCategorySlug?: string;
 }
 
 export function EntryForm({
@@ -46,7 +49,8 @@ export function EntryForm({
   onAddEntry,
   onUpdateEntry,
   entry,
-  categories
+  categories,
+  activeCategorySlug
 }: EntryFormProps) {
   const [open, setOpen] = useState(false);
   const isEditing = !!entry;
@@ -85,7 +89,7 @@ export function EntryForm({
     setUsername(entry?.username ?? '');
     setUrl(entry?.url ?? '');
     setNotes(entry?.notes ?? '');
-    setCategory(entry?.category ?? (categories.length > 0 ? categories[0].slug : ''));
+    setCategory(activeCategorySlug ?? entry?.category ?? (categories.length > 0 ? categories[0].slug : ''));
     setIcon(entry?.icon ?? 'Globe');
 
     // Reset sensitive fields
@@ -105,7 +109,7 @@ export function EntryForm({
     if (!isEditing && type === 'password') {
       setPasswordChanged(true);
     }
-  }, [entry, isEditing, categories]);
+  }, [entry, isEditing, categories, activeCategorySlug]);
 
 
   const generatePassword = useCallback(() => {
@@ -178,7 +182,27 @@ export function EntryForm({
       });
       return;
     }
+
+    // Determine if validation is needed
+    const needsValidation = !isEditing || 
+                           (entryType === 'password' && passwordChanged) || 
+                           (entryType === 'apiKey' && apiKeyChanged);
+
     setIsSaving(true);
+
+    if (needsValidation) {
+        try {
+            await doVerifyPassword(masterPassword);
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Master Password Invalid',
+                description: 'The master password you entered is incorrect. Entry not saved.',
+            });
+            setIsSaving(false);
+            return;
+        }
+    }
     
     let finalIcon = 'Globe';
     const searchString = url.trim() || title;
@@ -204,7 +228,6 @@ export function EntryForm({
 
     if (entryType === 'password') {
         if (!isEditing && !password) {
-          // This case should not happen if generation works, but as a safeguard.
           toast({ variant: 'destructive', title: 'Missing Password', description: 'Please generate or enter a password.' });
           setIsSaving(false);
           return;
@@ -223,29 +246,31 @@ export function EntryForm({
         entryData = { ...baseData, apiKey };
         if (!apiKeyChanged) masterPassForUpdate = undefined;
     } else {
-        // Fallback for unknown type
         toast({ variant: 'destructive', title: 'Unknown Entry Type' });
         setIsSaving(false);
         return;
     }
 
-
-    if (isEditing && entry) {
-        const updatedEntryData: VaultEntry = {
-            ...entry,
-            ...baseData,
-            username: entryType === 'password' ? username : entry.username,
-            password: entryType === 'password' && passwordChanged ? password : entry.password,
-            notes: entryType === 'note' ? notes : entry.notes,
-            apiKey: entryType === 'apiKey' && apiKeyChanged ? apiKey : entry.apiKey,
-        };
-        onUpdateEntry(updatedEntryData, masterPassForUpdate);
-    } else {
-        onAddEntry(entryData, masterPassword);
+    try {
+        if (isEditing && entry) {
+            const updatedEntryData: VaultEntry = {
+                ...entry,
+                ...baseData,
+                username: entryType === 'password' ? username : entry.username,
+                password: entryType === 'password' && passwordChanged ? password : entry.password,
+                notes: entryType === 'note' ? notes : entry.notes,
+                apiKey: entryType === 'apiKey' && apiKeyChanged ? apiKey : entry.apiKey,
+            };
+            await onUpdateEntry(updatedEntryData, masterPassForUpdate);
+        } else {
+            await onAddEntry(entryData, masterPassword);
+        }
+    } catch(e) {
+      // The parent component handles the success/fail toast.
+    } finally {
+        setIsSaving(false);
+        setOpen(false);
     }
-    
-    setIsSaving(false);
-    setOpen(false);
   };
   
   const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

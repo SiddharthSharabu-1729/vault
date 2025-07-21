@@ -60,7 +60,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
       </div>
       <nav className="flex-1 space-y-1 p-4">
         <div className="mb-2">
-            <CategoryCreator onAddCategory={onAddCategory}>
+            <CategoryCreator onAddCategory={onAddCategory} categories={categories}>
                 <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-primary">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   New Category

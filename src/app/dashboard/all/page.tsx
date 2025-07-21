@@ -20,7 +20,7 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
 import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
-import { addActivityLog } from '@/services/auth';
+import { addActivityLog, doVerifyPassword } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -91,18 +91,19 @@ function AllEntriesPage() {
           description: `${newCategoryData.name} has been successfully added.`,
       });
       await fetchAllData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating category:", error);
       toast({
         variant: 'destructive',
         title: 'Category Creation Failed',
-        description: 'Failed to create the new category. Please try again.',
+        description: error.message || 'Failed to create the new category. Please try again.',
       });
     }
   };
 
   const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
     try {
+      // Password validation is now handled inside EntryForm
       await addEntry(newEntryData, masterPassword);
       await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
       toast({
@@ -121,6 +122,7 @@ function AllEntriesPage() {
 
   const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
     try {
+      // Password validation is now handled inside EntryForm
       await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
       await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
        toast({

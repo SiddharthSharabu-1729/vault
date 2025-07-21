@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus, KeyRound, StickyNote, Facebook, Twitter, Instagram, Linkedin, Github, Gitlab, Slack, MessageSquare, Video, MessageCircle, Phone, Send, Trello, CheckSquare, Book, HardDrive, Box, Cloud, Droplet, Landmark, DollarSign, CreditCard, Clapperboard, Youtube, Music, ShoppingCart, ShoppingBag, Plane, Heart, GraduationCap, Bitcoin, Server, Database, Mail, Gamepad2, Sword, BrainCircuit, Apple, FileKey, Triangle } from 'lucide-react';
+import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus, KeyRound, StickyNote, Facebook, Twitter, Instagram, Linkedin, Github, Gitlab, Slack, MessageSquare, Video, MessageCircle, Phone, Send, Trello, CheckSquare, Book, HardDrive, Box, Cloud, Droplet, Landmark, DollarSign, CreditCard, Clapperboard, Youtube, Music, ShoppingCart, ShoppingBag, Plane, Heart, GraduationCap, Bitcoin, Server, Database, Mail, Gamepad2, Sword, BrainCircuit, Apple, FileKey, Triangle, CopyCheck } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
 
 export type Category = {
@@ -68,6 +68,7 @@ export const iconMap: { [key: string]: LucideIcon } = {
   Apple,
   FileKey,
   Triangle,
+  CopyCheck,
   // Add more icons as needed for the keyword matcher
   Stripe: DollarSign, // Using DollarSign as a stand-in as there's no official Stripe icon
   Amazon: ShoppingCart, // Using ShoppingCart as a stand-in for Amazon

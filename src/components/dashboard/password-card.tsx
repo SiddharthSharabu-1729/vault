@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Edit, MoreVertical, Trash2, Globe, Check, Eye, EyeOff, KeyRound, LoaderCircle, User, StickyNote, FileKey } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Globe, Check, Eye, EyeOff, KeyRound, LoaderCircle, User, StickyNote, FileKey, CopyCheck } from 'lucide-react';
 import type { Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,7 +47,7 @@ import { iconMap } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { EntryForm } from './password-generator';
 import { decryptPassword } from '@/services/crypto';
-import { addActivityLog } from '@/services/firestore';
+import { addActivityLog, doVerifyPassword } from '@/services/auth';
 
 
 interface EntryCardProps {
@@ -64,6 +64,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
   const [decryptedValue, setDecryptedValue] = useState('');
   const [copied, setCopied] = useState(false);
   const [showDecryptDialog, setShowDecryptDialog] = useState(false);
+  const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [masterPassword, setMasterPassword] = useState('');
   const [isDecrypting, setIsDecrypting] = useState(false);
 
@@ -126,6 +127,39 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
       setIsDecrypting(false);
     }
   };
+
+  const handleCopyToClipboard = async () => {
+    if (!masterPassword) {
+        toast({ variant: 'destructive', title: 'Master Password Required' });
+        return;
+    }
+    setIsDecrypting(true);
+    try {
+        const encryptedValue = entry.type === 'password' ? entry.password : entry.apiKey;
+        if (!encryptedValue) throw new Error("No value to copy");
+
+        const plainText = await decryptPassword(encryptedValue, masterPassword);
+        navigator.clipboard.writeText(plainText);
+        
+        toast({
+            title: `${entry.type === 'password' ? 'Password' : 'API Key'} Copied`,
+            description: `The value for ${entry.title} has been copied to your clipboard.`,
+        });
+
+        await addActivityLog('Entry Value Copied', `Copied the ${entry.type} for "${entry.title}".`);
+        setShowCopyDialog(false);
+        setMasterPassword('');
+
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Copy Failed',
+            description: error.message || `Could not copy the value. Please check your master password.`,
+        });
+    } finally {
+        setIsDecrypting(false);
+    }
+  }
   
   const handleUpdate = (updatedEntryData: VaultEntry, masterPass?: string) => {
     onUpdateEntry(updatedEntryData, masterPass);
@@ -225,6 +259,12 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                   Edit
                 </DropdownMenuItem>
               </EntryForm>
+              { (entry.type === 'password' || entry.type === 'apiKey') && (
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowCopyDialog(true); }}>
+                  <CopyCheck className="mr-2 h-4 w-4" />
+                  Copy with Password
+                </DropdownMenuItem>
+              )}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
@@ -274,6 +314,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
         )}
       </Card>
 
+      {/* Decrypt and View Dialog */}
       <Dialog open={showDecryptDialog} onOpenChange={setShowDecryptDialog}>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -306,6 +347,44 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                 <Button onClick={handleDecrypt} disabled={isDecrypting}>
                     {isDecrypting ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
                     {isDecrypting ? 'Unlocking...' : 'Unlock'}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Decrypt and Copy Dialog */}
+      <Dialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Copy Value to Clipboard</DialogTitle>
+                <DialogDescription>
+                    Enter your master password to securely copy the value for {entry.title}.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="master-password-copy">Master Password</Label>
+                    <div className="relative">
+                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            id="master-password-copy"
+                            type="password"
+                            required
+                            className="pl-10"
+                            value={masterPassword}
+                            onChange={(e) => setMasterPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && !isDecrypting && handleCopyToClipboard()}
+                        />
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="outline" disabled={isDecrypting}>Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleCopyToClipboard} disabled={isDecrypting}>
+                    {isDecrypting ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <CopyCheck className="mr-2 h-4 w-4" />}
+                    {isDecrypting ? 'Copying...' : 'Copy to Clipboard'}
                 </Button>
             </DialogFooter>
         </DialogContent>
