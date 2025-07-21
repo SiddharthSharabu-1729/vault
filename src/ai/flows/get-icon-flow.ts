@@ -10,8 +10,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import * as lucide from 'lucide-react';
 
-export const runtime = 'edge';
-
 const GetIconInputSchema = z.object({
   url: z.string().describe('The URL of the service to get an icon for.'),
 });
