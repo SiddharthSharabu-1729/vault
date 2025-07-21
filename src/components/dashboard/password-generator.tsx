@@ -122,12 +122,8 @@ export function PasswordGenerator({
       } else if (categories.length > 0) {
         setCategory(categories[0].slug);
       }
-      
-      if (!isEditing) {
-        generatePassword();
-      }
     }
-  }, [open, isEditing, entry, categories, generatePassword, resetForm]);
+  }, [open, isEditing, entry, categories, resetForm]);
 
   // Effect to regenerate password when options change
   useEffect(() => {

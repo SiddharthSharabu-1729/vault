@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -24,7 +25,7 @@ export function SidebarMobile({ categories, onAddCategory, loading }: SidebarMob
   return (
     <nav className="grid gap-6 text-lg font-medium mt-4">
         <Link
-            href="/dashboard"
+            href="/dashboard/all"
             className="group flex h-12 w-12 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base self-start"
         >
             <ShieldCheck className="h-6 w-6 transition-all group-hover:scale-110" />
@@ -49,8 +50,8 @@ export function SidebarMobile({ categories, onAddCategory, loading }: SidebarMob
             ) : (
             allCategories.map((category) => {
                 const IconComponent = (iconMap[category.icon] || LayoutGrid) as Icon;
-                const href = `/dashboard/${category.slug === 'all' ? '' : category.slug}`;
-                const isActive = (pathname === '/dashboard' && category.slug === 'all') || pathname.endsWith(`/${category.slug}`);
+                const href = `/dashboard/${category.slug}`;
+                const isActive = pathname === href;
 
                 return (
                 <Link

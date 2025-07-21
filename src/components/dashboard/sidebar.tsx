@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -45,7 +46,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-[220px] flex-col border-r bg-background sm:flex lg:w-[280px]">
       <div className="flex h-16 items-center border-b px-6">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link href="/dashboard/all" className="flex items-center gap-2 font-semibold">
           <ShieldCheck className="h-6 w-6 text-primary" />
           <span className="">Fortress Vault</span>
         </Link>
@@ -68,8 +69,8 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
            ))
         ) : (
           allCategories.map((category) => {
-              const href = `/dashboard/${category.slug === 'all' ? '' : category.slug}`;
-              const isActive = (pathname === '/dashboard' && category.slug === 'all') || pathname.endsWith(`/${category.slug}`);
+              const href = `/dashboard/${category.slug}`;
+              const isActive = pathname === href;
               const IconComponent = (iconMap[category.icon] || LayoutGrid) as Icon;
 
               return (
