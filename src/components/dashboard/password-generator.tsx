@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -96,6 +97,11 @@ export function PasswordGenerator({
     if (includeSymbols) charset += symbolCharset;
 
     if (charset.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Cannot generate password',
+        description: 'Please select at least one character type.',
+      });
       setPassword('');
       return;
     }
@@ -105,21 +111,31 @@ export function PasswordGenerator({
       newPassword += charset.charAt(Math.floor(Math.random() * charset.length));
     }
     setPassword(newPassword);
-  }, [length, includeUppercase, includeNumbers, includeSymbols]);
+  }, [length, includeUppercase, includeNumbers, includeSymbols, toast]);
+  
+  // Effect to handle initial password generation and form reset
+  useEffect(() => {
+    if (open) {
+      resetForm();
+      if (entry) {
+        setCategory(entry.category);
+      } else if (categories.length > 0) {
+        setCategory(categories[0].slug);
+      }
+      
+      if (!isEditing) {
+        generatePassword();
+      }
+    }
+  }, [open, isEditing, entry, categories, generatePassword, resetForm]);
 
+  // Effect to regenerate password when options change
   useEffect(() => {
     if (open && !isEditing) {
-        generatePassword();
+      generatePassword();
     }
-    if (open) {
-        resetForm();
-        if (entry) {
-          setCategory(entry.category);
-        } else if (categories.length > 0) {
-          setCategory(categories[0].slug);
-        }
-    }
-  }, [generatePassword, isEditing, open, resetForm, entry, categories]);
+  }, [length, includeUppercase, includeNumbers, includeSymbols, open, isEditing, generatePassword]);
+
 
   const handleCopy = () => {
     if (password) {
@@ -162,8 +178,6 @@ export function PasswordGenerator({
     };
     
     onAddEntry(newEntry);
-
-    // Toast is handled in the parent component now
     
     setIsSaving(false);
     setOpen(false);

@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { PasswordGenerator } from '@/components/dashboard/password-generator';
 import { PasswordCard } from '@/components/dashboard/password-card';
@@ -57,7 +58,6 @@ function DashboardPage() {
   };
 
   useEffect(() => {
-    // currentUser is guaranteed by withAuth, so we can safely fetch data.
     if(currentUser) {
         fetchAllData();
     }
@@ -65,7 +65,8 @@ function DashboardPage() {
   }, [currentUser]);
 
   useEffect(() => {
-    const categorySlug = pathname.split('/')[2] || 'all';
+    const pathParts = pathname.split('/');
+    const categorySlug = pathParts.length > 2 && pathParts[2] ? pathParts[2] : 'all';
     const searchTerm = searchParams.get('q')?.toLowerCase() || '';
 
     const newFilteredEntries = entries.filter((entry) => {
@@ -151,7 +152,8 @@ function DashboardPage() {
   };
 
   const getPageTitle = () => {
-    const categorySlug = pathname.split('/')[2];
+    const pathParts = pathname.split('/');
+    const categorySlug = pathParts.length > 2 && pathParts[2] ? pathParts[2] : 'all';
     if (!categorySlug || categorySlug === 'all') return 'All Vault Entries';
     const category = categories.find(c => c.slug === categorySlug);
     return category ? category.name : 'Vault Entries';
