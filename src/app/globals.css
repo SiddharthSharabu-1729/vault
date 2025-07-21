@@ -8,19 +8,19 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 96.1%;
+    --background: 240 5% 96%; /* Light Gray: #F5F5F5 */
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 231 48% 48%;
+    --primary: 231 48% 48%; /* Deep Indigo: #3F51B5 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
+    --secondary: 240 5% 96%;
     --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
+    --muted: 240 5% 96%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 261 44% 68%;
+    --accent: 258 44% 68%; /* Electric Purple: #7E57C2 */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -47,7 +47,7 @@ body {
     --secondary-foreground: 0 0% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 261 44% 68%;
+    --accent: 258 44% 68%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;

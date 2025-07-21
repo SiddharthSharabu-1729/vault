@@ -9,7 +9,10 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  type User
+  type User,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import { createDefaultCategories, addActivityLog as addLog } from './firestore';
 
@@ -35,6 +38,34 @@ export const doSignInWithEmailAndPassword = async (email, password) => {
 
 export const doSignOut = () => {
     return signOut(auth);
+};
+
+export const doChangePassword = async (currentPassword, newPassword) => {
+    const user = auth.currentUser;
+    if (!user || !user.email) {
+      throw new Error("User not found or email is missing.");
+    }
+  
+    // Create a credential with the user's email and the current password.
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  
+    try {
+      // Re-authenticate the user to verify their identity.
+      await reauthenticateWithCredential(user, credential);
+  
+      // If re-authentication is successful, update the password.
+      await updatePassword(user, newPassword);
+      
+      // Log the successful password change.
+      await addLog('Password Changed', 'User successfully changed their password.');
+    } catch (error: any) {
+      // Handle specific re-authentication errors.
+      if (error.code === 'auth/wrong-password') {
+        throw new Error('The current password you entered is incorrect.');
+      }
+      console.error("Password change error:", error);
+      throw new Error('Failed to change password. Please try again.');
+    }
 };
 
 export const addActivityLog = async (action: string, details: string) => {

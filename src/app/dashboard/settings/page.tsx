@@ -19,9 +19,11 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Shield, Clock, LoaderCircle } from 'lucide-react';
+import { User, Mail, Shield, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ChangePasswordForm } from '@/components/dashboard/change-password-form';
+
 
 function SettingsPage() {
   const { currentUser } = useAuth();
@@ -124,7 +126,9 @@ function SettingsPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" disabled>Change Password (coming soon)</Button>
+                  <ChangePasswordForm>
+                    <Button variant="outline">Change Password</Button>
+                  </ChangePasswordForm>
                 </CardFooter>
               </Card>
             </div>
