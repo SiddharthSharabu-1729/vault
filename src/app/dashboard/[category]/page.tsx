@@ -6,7 +6,8 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { PasswordGenerator } from '@/components/dashboard/password-generator';
 import { PasswordCard } from '@/components/dashboard/password-card';
 import type { PasswordEntry, Category } from '@/lib/data';
-import { PlusCircle, LoaderCircle } from 'lucide-react';
+import { defaultCategories } from '@/lib/data';
+import { PlusCircle, LoaderCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,6 +16,17 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
@@ -37,6 +49,8 @@ function CategoryPage() {
   const [pageLoading, setPageLoading] = useState(true);
 
   const categorySlug = params.category as string;
+  const currentCategory = categories.find(c => c.slug === categorySlug);
+  const isDefaultCategory = categorySlug === 'all' || defaultCategories.some(dc => dc.slug === categorySlug);
 
   const fetchAllData = async () => {
     if (!currentUser) return;
@@ -180,7 +194,7 @@ function CategoryPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
-      <Sidebar categories={categories} onAddCategory={handleAddCategory} onDeleteCategory={handleDeleteCategory} loading={pageLoading} />
+      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
         <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
         <main className="flex-1 p-4 sm:p-6">
@@ -194,12 +208,42 @@ function CategoryPage() {
                       Manage your saved passwords and sensitive information.
                     </CardDescription>
                   </div>
-                  <PasswordGenerator onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
-                    <Button>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add New
-                    </Button>
-                  </PasswordGenerator>
+                  <div className="flex items-center gap-2">
+                    {!isDefaultCategory && currentCategory && (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Category
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete &quot;{currentCategory.name}&quot;?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete this
+                                        category and all password entries within it.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={() => handleDeleteCategory(currentCategory.id, currentCategory.name)}
+                                        className="bg-destructive hover:bg-destructive/90"
+                                    >
+                                        Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    )}
+                    <PasswordGenerator onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
+                      <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add New
+                      </Button>
+                    </PasswordGenerator>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

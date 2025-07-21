@@ -97,25 +97,6 @@ function AllEntriesPage() {
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
-    try {
-        await deleteCategory(categoryId);
-        toast({
-            title: 'Category Deleted',
-            description: `The "${categoryName}" category and all its entries have been deleted.`,
-        });
-        router.push('/dashboard/all');
-        await fetchAllData();
-    } catch (error) {
-        console.error("Error deleting category:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Failed to delete category.',
-        });
-    }
-  };
-
   const handleAddEntry = async (newEntryData: Omit<PasswordEntry, 'id'>, masterPassword: string) => {
     try {
       await addEntry(newEntryData, masterPassword);
@@ -170,7 +151,7 @@ function AllEntriesPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
-      <Sidebar categories={categories} onAddCategory={handleAddCategory} onDeleteCategory={handleDeleteCategory} loading={pageLoading} />
+      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
         <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
         <main className="flex-1 p-4 sm:p-6">
