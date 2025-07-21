@@ -33,8 +33,8 @@ function DashboardPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const fetchAllData = useCallback(async () => {
-    if (!currentUser) return; // Should not happen due to withAuth, but good practice
+  const fetchAllData = async () => {
+    if (!currentUser) return;
 
     setPageLoading(true);
     try {
@@ -54,12 +54,15 @@ function DashboardPage() {
     } finally {
       setPageLoading(false);
     }
-  }, [currentUser, toast]);
+  };
 
   useEffect(() => {
     // currentUser is guaranteed by withAuth, so we can safely fetch data.
-    fetchAllData();
-  }, [fetchAllData]);
+    if(currentUser) {
+        fetchAllData();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   useEffect(() => {
     const categorySlug = pathname.split('/')[2] || 'all';

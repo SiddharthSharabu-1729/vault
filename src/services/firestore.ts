@@ -1,5 +1,3 @@
-'use server';
-
 import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import type { PasswordEntry } from '@/lib/data';
@@ -10,7 +8,6 @@ import type { Category } from '@/lib/data';
 // == CATEGORY FUNCTIONS ==
 
 export async function createDefaultCategories(userId: string) {
-    console.log(`[firestore] createDefaultCategories called for userId: ${userId}`);
     if (!userId) {
         console.error("No user ID provided to create default categories.");
         return;
@@ -28,7 +25,6 @@ export async function createDefaultCategories(userId: string) {
 
 export async function getCategories(): Promise<Category[]> {
     const userId = auth.currentUser?.uid;
-    console.log(`[firestore] getCategories called. UserID: ${userId}`);
     if (!userId) {
         console.error("Attempted to get categories without a user ID.");
         return [];
@@ -41,7 +37,6 @@ export async function getCategories(): Promise<Category[]> {
 
 export async function addCategory(categoryData: Omit<Category, 'id'>): Promise<Category> {
     const userId = auth.currentUser?.uid;
-    console.log(`[firestore] addCategory called. UserID: ${userId}`);
     if (!userId) {
         throw new Error("User is not authenticated. Cannot add category.");
     }
@@ -54,7 +49,6 @@ export async function addCategory(categoryData: Omit<Category, 'id'>): Promise<C
 
 export async function getEntries(): Promise<PasswordEntry[]> {
     const userId = auth.currentUser?.uid;
-    console.log(`[firestore] getEntries called. UserID: ${userId}`);
     if (!userId) {
         console.error("Attempted to get entries without a user ID.");
         return [];
@@ -67,7 +61,6 @@ export async function getEntries(): Promise<PasswordEntry[]> {
 
 export async function addEntry(entryData: Omit<PasswordEntry, 'id'>): Promise<PasswordEntry> {
     const userId = auth.currentUser?.uid;
-    console.log(`[firestore] addEntry called. UserID: ${userId}`);
     if (!userId) {
         throw new Error("User is not authenticated. Cannot add entry.");
     }
@@ -78,7 +71,6 @@ export async function addEntry(entryData: Omit<PasswordEntry, 'id'>): Promise<Pa
 
 export async function updateEntry(entryId: string, entryData: Partial<Omit<PasswordEntry, 'id'>>) {
     const userId = auth.currentUser?.uid;
-    console.log(`[firestore] updateEntry called. UserID: ${userId}`);
     if (!userId) {
         throw new Error("User is not authenticated. Cannot update entry.");
     }
@@ -88,7 +80,6 @@ export async function updateEntry(entryId: string, entryData: Partial<Omit<Passw
 
 export async function deleteEntry(entryId: string) {
     const userId = auth.currentUser?.uid;
-    console.log(`[firestore] deleteEntry called. UserID: ${userId}`);
     if (!userId) {
         throw new Error("User is not authenticated. Cannot delete entry.");
     }
