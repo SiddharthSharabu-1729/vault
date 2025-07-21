@@ -94,7 +94,7 @@ function SettingsPage() {
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
+        <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} showSearch={false} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">

@@ -22,9 +22,10 @@ interface HeaderProps {
     categories: Category[];
     onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
     loading: boolean;
+    showSearch?: boolean;
 }
 
-export function Header({ categories, onAddCategory, loading }: HeaderProps) {
+export function Header({ categories, onAddCategory, loading, showSearch = true }: HeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -52,16 +53,18 @@ export function Header({ categories, onAddCategory, loading }: HeaderProps) {
            <SidebarMobile categories={categories} onAddCategory={onAddCategory} loading={loading} />
         </SheetContent>
       </Sheet>
-      <div className="relative flex-1 md:grow-0">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search entries..."
-          className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
-          onChange={handleSearch}
-          defaultValue={searchParams.get('q') ?? ''}
-        />
-      </div>
+      {showSearch && (
+        <div className="relative flex-1 md:grow-0">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+            type="search"
+            placeholder="Search entries..."
+            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+            onChange={handleSearch}
+            defaultValue={searchParams.get('q') ?? ''}
+            />
+        </div>
+      )}
       <div className="ml-auto flex items-center gap-2">
          {/* Theme toggle was moved to sidebar user menu */}
       </div>
