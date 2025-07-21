@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, LogOut, User as UserIcon, Settings, Trash2, type Icon } from 'lucide-react';
 import type { Category } from '@/lib/data';
-import { iconMap } from '@/lib/data';
+import { iconMap, defaultCategories } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CategoryCreator } from './category-creator';
