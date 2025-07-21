@@ -8,7 +8,6 @@
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import * as lucide from 'lucide-react';
 
 const GetIconInputSchema = z.object({
   url: z.string().describe('The URL of the service to get an icon for.'),
@@ -22,14 +21,16 @@ const GetIconOutputSchema = z.object({
 });
 export type GetIconOutput = z.infer<typeof GetIconOutputSchema>;
 
-// Get a list of all available icon names from lucide-react, excluding aliases and deprecated icons
-const availableIcons = Object.keys(lucide).filter(
-  (key) =>
-    typeof lucide[key as keyof typeof lucide] === 'object' &&
-    key !== 'createLucideIcon' &&
-    key !== 'icons' &&
-    key[0] === key[0].toUpperCase()
-);
+// Static list of common Lucide icons to avoid importing the entire library on the edge.
+const availableIcons = [
+  'Globe', 'Briefcase', 'User', 'Users', 'Banknote', 'Tv', 'Folder', 'KeyRound', 'StickyNote',
+  'Github', 'Twitter', 'Facebook', 'Instagram', 'Linkedin', 'Youtube', 'Twitch', 'Discord',
+  'Slack', 'Figma', 'Dribbble', 'Behance', 'Codepen', 'Gitlab', 'Bitbucket', 'Notion',
+  'Google', 'Apple', 'Amazon', 'Microsoft', 'Netflix', 'Spotify', 'Paypal', 'Stripe',
+  'Mail', 'MessageSquare', 'Phone', 'Calendar', 'Clock', 'Shield', 'Lock', 'Unlock',
+  'Settings', 'Home', 'Search', 'Link', 'ExternalLink', 'Book', 'Bookmark', 'ShoppingBag',
+  'ShoppingCart', 'CreditCard', 'Database', 'Server', 'Cloud', 'Code', 'Terminal', 'Coffee'
+];
 
 
 export async function getIconForUrl(
@@ -43,10 +44,10 @@ const prompt = ai.definePrompt({
   input: { schema: GetIconInputSchema },
   output: { schema: GetIconOutputSchema },
   prompt: `You are an expert at selecting the best icon for a web service.
-Based on the URL provided, suggest the most appropriate icon name from the following list of available lucide-react icons.
+Based on the URL or service name provided, suggest the most appropriate icon name from the following list of available lucide-react icons.
 Only return one single icon name from the list. If no specific icon seems to fit, default to "Globe".
 
-URL: {{{url}}}
+URL or Service Name: {{{url}}}
 
 Available Icons:
 ${availableIcons.join(', ')}
