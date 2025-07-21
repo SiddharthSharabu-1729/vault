@@ -12,7 +12,8 @@ import {
   type User,
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { createDefaultCategories, addActivityLog as addLog } from './firestore';
 
@@ -38,6 +39,10 @@ export const doSignInWithEmailAndPassword = async (email, password) => {
 
 export const doSignOut = () => {
     return signOut(auth);
+};
+
+export const doPasswordReset = (email: string) => {
+    return sendPasswordResetEmail(auth, email);
 };
 
 export const doChangePassword = async (currentPassword, newPassword) => {
@@ -94,3 +99,22 @@ export const addActivityLog = async (action: string, details: string) => {
 export const onAuthChanged = (callback: (user: User | null) => void) => {
     return onAuthStateChanged(auth, callback);
 }
+
+export const getFriendlyAuthErrorMessage = (error: any): string => {
+    switch (error.code) {
+      case 'auth/invalid-email':
+        return 'The email address is not valid.';
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'Invalid email or password. Please try again.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email address already exists.';
+      case 'auth/weak-password':
+        return 'The password is too weak. Please use at least 6 characters.';
+      case 'auth/too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
+};

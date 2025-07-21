@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { doCreateUserWithEmailAndPassword } from '@/services/auth';
+import { doCreateUserWithEmailAndPassword, getFriendlyAuthErrorMessage } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export function SignupForm() {
@@ -50,7 +50,7 @@ export function SignupForm() {
       toast({
         variant: 'destructive',
         title: 'Registration Failed',
-        description: error.message || 'An unknown error occurred.',
+        description: getFriendlyAuthErrorMessage(error),
       });
       setIsRegistering(false);
     }

@@ -10,8 +10,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { doSignInWithEmailAndPassword } from '@/services/auth';
+import { doSignInWithEmailAndPassword, getFriendlyAuthErrorMessage } from '@/services/auth';
 import { useToast } from '@/hooks/use-toast';
+import { ForgotPasswordForm } from './forgot-password-form';
 
 
 export function LoginForm() {
@@ -33,7 +34,7 @@ export function LoginForm() {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message || "An unknown error occurred. Please check your credentials.",
+        description: getFriendlyAuthErrorMessage(error),
       });
       setIsSigningIn(false);
     }
@@ -70,7 +71,12 @@ export function LoginForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Master Password</Label>
+            <div className="flex items-center justify-between">
+                <Label htmlFor="password">Master Password</Label>
+                <ForgotPasswordForm>
+                    <button type="button" className="text-xs text-primary hover:underline">Forgot Password?</button>
+                </ForgotPasswordForm>
+            </div>
             <div className="relative">
               <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
