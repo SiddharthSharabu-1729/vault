@@ -1,5 +1,5 @@
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc } from 'firebase/firestore';
 import type { PasswordEntry } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
@@ -54,7 +54,8 @@ export async function deleteCategory(categoryId: string) {
 
     // 1. Find all entries in the category to be deleted
     const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
-    const categorySlug = (await (await db.doc(categoryRef.path).get())).data()?.slug;
+    const categoryDoc = await getDoc(categoryRef);
+    const categorySlug = categoryDoc.data()?.slug;
 
     if (categorySlug) {
         const entriesCollection = collection(db, 'users', userId, 'entries');
