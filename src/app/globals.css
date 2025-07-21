@@ -64,17 +64,17 @@ body {
 }
 
 html[class~="light"] {
-  --background: 240 10% 97%; /* Softer Light Theme */
+  --background: 240 10% 96%; /* Softer Light Theme */
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
-  --primary: 231 44% 44%; /* Less bright primary */
+  --primary: 220 14% 45%; /* Subdued primary */
   --primary-foreground: 0 0% 98%;
-  --secondary: 240 5% 94%;
+  --secondary: 240 5% 95%;
   --secondary-foreground: 240 10% 3.9%;
-  --muted: 240 5% 94%;
+  --muted: 240 5% 95%;
   --muted-foreground: 240 3.8% 46.1%;
   --accent: 266 40% 51%;
   --accent-foreground: 0 0% 98%;
@@ -82,7 +82,7 @@ html[class~="light"] {
   --destructive-foreground: 0 0% 98%;
   --border: 240 6% 90%;
   --input: 240 6% 90%;
-  --ring: 231 44% 44%;
+  --ring: 220 14% 45%;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
