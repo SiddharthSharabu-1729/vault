@@ -22,6 +22,7 @@ import { Button } from './ui/button'
 interface EditorProps {
     content: string;
     onChange: (richText: string) => void;
+    editable?: boolean;
 }
 
 
@@ -38,6 +39,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Bold"
                 title="Bold"
+                disabled={!editor.isEditable}
             >
                 <Bold className="h-4 w-4" />
             </Button>
@@ -47,6 +49,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Italic"
                 title="Italic"
+                disabled={!editor.isEditable}
             >
                 <Italic className="h-4 w-4" />
             </Button>
@@ -56,6 +59,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Strikethrough"
                 title="Strikethrough"
+                disabled={!editor.isEditable}
             >
                 <Strikethrough className="h-4 w-4" />
             </Button>
@@ -66,6 +70,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Heading 1"
                 title="Heading 1"
+                disabled={!editor.isEditable}
             >
                 <Heading1 className="h-4 w-4" />
             </Button>
@@ -75,6 +80,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Heading 2"
                 title="Heading 2"
+                disabled={!editor.isEditable}
             >
                 <Heading2 className="h-4 w-4" />
             </Button>
@@ -84,6 +90,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Heading 3"
                 title="Heading 3"
+                disabled={!editor.isEditable}
             >
                 <Heading3 className="h-4 w-4" />
             </Button>
@@ -94,6 +101,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Bullet List"
                 title="Bullet List"
+                disabled={!editor.isEditable}
             >
                 <List className="h-4 w-4" />
             </Button>
@@ -103,6 +111,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 aria-label="Ordered List"
                 title="Ordered List"
+                disabled={!editor.isEditable}
             >
                 <ListOrdered className="h-4 w-4" />
             </Button>
@@ -111,7 +120,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
 }
 
 
-export function Editor({ content, onChange }: EditorProps) {
+export function Editor({ content, onChange, editable = true }: EditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
@@ -137,18 +146,31 @@ export function Editor({ content, onChange }: EditorProps) {
         editorProps: {
             attributes: {
                 class:
-                    'prose prose-sm dark:prose-invert max-w-none min-h-[150px] rounded-b-md border-x border-b border-input bg-transparent px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                    'prose prose-sm dark:prose-invert max-w-none min-h-[45vh] rounded-b-md border-x border-b border-input bg-transparent px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
             },
         },
         onUpdate({ editor }) {
             onChange(editor.getHTML())
         },
+        editable: editable,
     });
 
+    useEffect(() => {
+        if (editor && editor.isEditable !== editable) {
+            editor.setEditable(editable);
+        }
+    }, [editable, editor]);
+
+    useEffect(() => {
+        if (editor && content !== editor.getHTML()) {
+            editor.commands.setContent(content);
+        }
+    }, [content, editor]);
+
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
             <EditorToolbar editor={editor} />
-            <EditorContent editor={editor} />
+            <EditorContent editor={editor} className="flex-grow overflow-y-auto" />
         </div>
     )
 }

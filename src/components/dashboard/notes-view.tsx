@@ -54,9 +54,9 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
         }
     }, [selectedNoteId, notes]);
 
-    // Select the first note by default if one exists
+    // Select the first note by default if one exists, or clear selection if list is empty
     useEffect(() => {
-        if (!selectedNoteId && notes.length > 0) {
+        if (notes.length > 0 && !notes.find(n => n.id === selectedNoteId)) {
             setSelectedNoteId(notes[0].id);
         } else if (notes.length === 0) {
             setSelectedNoteId(null);
@@ -71,8 +71,6 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     const handleNewNote = () => {
         const defaultCategory = activeCategorySlug ?? (categories[0]?.slug || 'personal');
         
-        // This is a dummy note object. The ID will be assigned by Firestore.
-        // It won't use master password for encryption as notes are not encrypted.
         const newNote: Omit<VaultEntry, 'id'> = {
             type: 'note',
             title: 'New Note',
@@ -81,15 +79,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
             notes: '<p>Start writing your new note here...</p>',
         };
         
-        // Use a dummy password as it's required by the function signature, but notes are unencrypted.
-        onAddEntry(newNote, 'DUMMY_PASSWORD'); 
-
-        // Optimistically set the view to a new note state while waiting for DB update
-        setActiveNote(null); // Clear out old active note
-        setEditorTitle('New Note');
-        setEditorContent('<p>Start writing your new note here...</p>');
-        // We don't set a selectedId because the new note doesn't have one yet.
-        // The useEffect will pick up the new note from the props and select it once it's added.
+        onAddEntry(newNote, 'DUMMY_PASSWORD_FOR_NOTE');
     };
 
     const handleSaveNote = async () => {
@@ -120,6 +110,9 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
         
         try {
             await onUpdateEntry(updatedNote);
+            // Parent component will toast success
+        } catch (error) {
+            // Parent component will toast error
         } finally {
             setIsSaving(false);
         }
@@ -134,20 +127,21 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[60vh]">
             {/* Editor Pane (Left Side) */}
             <div className="md:col-span-2 lg:col-span-3 flex flex-col border rounded-lg p-4">
-                {notes.length > 0 || (activeNote === null && editorTitle === 'New Note') ? (
+                {notes.length > 0 ? (
                     <>
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                            <input
                                 type="text"
                                 value={editorTitle}
                                 onChange={(e) => setEditorTitle(e.target.value)}
                                 placeholder="Note Title"
-                                className="text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 w-full"
+                                className="text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 flex-grow min-w-[200px]"
+                                disabled={!activeNote}
                            />
                             <div className="flex items-center gap-2">
                                 <Button onClick={handleSaveNote} disabled={isSaving || !activeNote}>
                                     {isSaving ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                    Save
+                                    {isSaving ? 'Saving...' : 'Save'}
                                 </Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -170,6 +164,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                              <Editor
                                 content={editorContent}
                                 onChange={setEditorContent}
+                                editable={!!activeNote}
                             />
                         </div>
                     </>
