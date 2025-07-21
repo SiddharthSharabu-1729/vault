@@ -49,11 +49,13 @@ export function PasswordGenerator({
   const [open, setOpen] = useState(false);
   const isEditing = !!entry;
 
-  const [length, setLength] = useState(isEditing ? 16 : 16); // Default to 16, don't derive from encrypted length
+  // Generator settings
+  const [length, setLength] = useState(16);
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(true);
   
+  // Form fields
   const [password, setPassword] = useState('');
   const [serviceName, setServiceName] = useState('');
   const [username, setUsername] = useState('');
@@ -61,26 +63,27 @@ export function PasswordGenerator({
   const [category, setCategory] = useState('');
   const [icon, setIcon] = useState('Globe');
   const [masterPassword, setMasterPassword] = useState('');
-  const [passwordChanged, setPasswordChanged] = useState(false);
 
+  // State trackers
+  const [passwordChanged, setPasswordChanged] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const { toast } = useToast();
   
-  const resetForm = useCallback(() => {
+  const initializeForm = useCallback(() => {
     setServiceName(entry?.serviceName ?? '');
     setUsername(entry?.username ?? '');
     setUrl(entry?.url ?? '');
-    setCategory(entry?.category ?? '');
+    setCategory(entry?.category ?? (categories.length > 0 ? categories[0].slug : ''));
     setIcon(entry?.icon ?? 'Globe');
-    setPassword(''); // Clear password field
+    setPassword('');
     setMasterPassword('');
-    setPasswordChanged(!isEditing); // New entries always need a password
+    setPasswordChanged(!isEditing); // New entries always need a new password
     setLength(16);
     setIncludeUppercase(true);
     setIncludeNumbers(true);
     setIncludeSymbols(true);
-  }, [entry, isEditing]);
+  }, [entry, isEditing, categories]);
 
 
   const generatePassword = useCallback(() => {
@@ -112,23 +115,20 @@ export function PasswordGenerator({
     setPasswordChanged(true);
   }, [length, includeUppercase, includeNumbers, includeSymbols, toast]);
   
+  // Effect to initialize form state when dialog opens
   useEffect(() => {
     if (open) {
-      resetForm();
-      if (!isEditing) {
-        generatePassword();
-      }
-      if (categories.length > 0 && !entry?.category) {
-        setCategory(categories[0].slug);
-      }
+      initializeForm();
     }
-  }, [open, isEditing, entry, categories, resetForm, generatePassword]);
+  }, [open, initializeForm]);
   
+  // Effect to handle automatic password generation
   useEffect(() => {
+    // Only generate password if the dialog is open and it's for a new entry
     if (open && !isEditing) {
       generatePassword();
     }
-  }, [length, includeUppercase, includeNumbers, includeSymbols, open, isEditing, generatePassword]);
+  }, [open, isEditing, generatePassword, length, includeUppercase, includeNumbers, includeSymbols]);
 
 
   const handleCopy = () => {
@@ -198,7 +198,7 @@ export function PasswordGenerator({
       setPasswordChanged(true);
     } else if (!isEditing) { // If it's a new entry, password is required
       setPasswordChanged(true);
-    } else { // If editing and field is cleared, maybe revert to old password state
+    } else { // If editing and field is cleared, it means we don't want to change the password
       setPasswordChanged(false);
     }
   }
