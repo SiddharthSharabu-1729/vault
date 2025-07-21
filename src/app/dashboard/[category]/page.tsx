@@ -6,7 +6,6 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { PasswordGenerator } from '@/components/dashboard/password-generator';
 import { PasswordCard } from '@/components/dashboard/password-card';
 import type { PasswordEntry, Category } from '@/lib/data';
-import { defaultCategories } from '@/lib/data';
 import { PlusCircle, LoaderCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,7 +49,6 @@ function CategoryPage() {
 
   const categorySlug = params.category as string;
   const currentCategory = categories.find(c => c.slug === categorySlug);
-  const isDefaultCategory = categorySlug === 'all' || defaultCategories.some(dc => dc.slug === categorySlug);
 
   const fetchAllData = async () => {
     if (!currentUser) return;
@@ -209,7 +207,7 @@ function CategoryPage() {
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
-                    {!isDefaultCategory && currentCategory && (
+                    {categorySlug !== 'all' && currentCategory && (
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive">
