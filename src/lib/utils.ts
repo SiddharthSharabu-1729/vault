@@ -32,7 +32,7 @@ const iconKeywordMap: { [key: string]: string } = {
   'aws': 'Cloud',
   'azure': 'Cloud',
   'gcp': 'Cloud',
-  'cloudflare': 'Cloudflare',
+  'cloudflare': 'Cloud',
   'digitalocean': 'Droplet',
   'heroku': 'Box',
   // Finances
@@ -50,7 +50,7 @@ const iconKeywordMap: { [key: string]: string } = {
   'ebay': 'ShoppingBag',
   'apple': 'Apple',
   'gaming': 'Gamepad2',
-  'steam': 'Steam',
+  'steam': 'Gamepad2',
   'epic': 'Sword',
   // Development
   'code': 'Code',
@@ -58,7 +58,7 @@ const iconKeywordMap: { [key: string]: string } = {
   'key': 'KeyRound',
   'openai': 'BrainCircuit',
   'firebase': 'Firebase',
-  'vercel': 'Vercel',
+  'vercel': 'Triangle',
   'netlify': 'Cloud',
   // Generic
   'personal': 'User',
