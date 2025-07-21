@@ -9,7 +9,6 @@ import type { Category } from '@/lib/data';
 
 export async function createDefaultCategories(userId: string) {
     if (!userId) {
-        console.error("No user ID provided to create default categories.");
         return;
     }
     const batch = writeBatch(db);
@@ -26,7 +25,6 @@ export async function createDefaultCategories(userId: string) {
 export async function getCategories(): Promise<Category[]> {
     const userId = auth.currentUser?.uid;
     if (!userId) {
-        console.error("Attempted to get categories without a user ID.");
         return [];
     }
     const categoriesCollection = collection(db, 'users', userId, 'categories');
@@ -50,7 +48,6 @@ export async function addCategory(categoryData: Omit<Category, 'id'>): Promise<C
 export async function getEntries(): Promise<PasswordEntry[]> {
     const userId = auth.currentUser?.uid;
     if (!userId) {
-        console.error("Attempted to get entries without a user ID.");
         return [];
     }
     const entriesCollection = collection(db, 'users', userId, 'entries');
