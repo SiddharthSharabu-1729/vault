@@ -22,6 +22,8 @@ import { useAuth } from '@/contexts/authContext';
 import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 function AllEntriesPage() {
   const { currentUser } = useAuth();
@@ -182,56 +184,70 @@ function AllEntriesPage() {
                     <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
                   </div>
                 ) : filteredEntries.length > 0 ? (
-                  <div className="space-y-8">
-                    {passwordEntries.length > 0 && (
-                      <div>
-                        <h2 className="text-xl font-semibold flex items-center mb-4"><Lock className="mr-3 h-5 w-5 text-muted-foreground"/> Passwords</h2>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {passwordEntries.map((entry) => (
-                            <EntryCard
-                              key={entry.id}
-                              entry={entry}
-                              onUpdateEntry={handleUpdateEntry}
-                              onDeleteEntry={handleDeleteEntry}
-                              categories={categories}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                     {apiKeyEntries.length > 0 && (
-                      <div>
-                        <h2 className="text-xl font-semibold flex items-center mb-4"><KeyRound className="mr-3 h-5 w-5 text-muted-foreground"/> API Keys</h2>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {apiKeyEntries.map((entry) => (
-                            <EntryCard
-                              key={entry.id}
-                              entry={entry}
-                              onUpdateEntry={handleUpdateEntry}
-                              onDeleteEntry={handleDeleteEntry}
-                              categories={categories}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                     {noteEntries.length > 0 && (
-                      <div>
-                        <h2 className="text-xl font-semibold flex items-center mb-4"><StickyNote className="mr-3 h-5 w-5 text-muted-foreground"/> Secure Notes</h2>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {noteEntries.map((entry) => (
-                            <EntryCard
-                              key={entry.id}
-                              entry={entry}
-                              onUpdateEntry={handleUpdateEntry}
-                              onDeleteEntry={handleDeleteEntry}
-                              categories={categories}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    <Tabs defaultValue="passwords" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="passwords"><Lock className="mr-2 h-4 w-4" /> Passwords ({passwordEntries.length})</TabsTrigger>
+                            <TabsTrigger value="apiKeys"><KeyRound className="mr-2 h-4 w-4" /> API Keys ({apiKeyEntries.length})</TabsTrigger>
+                            <TabsTrigger value="notes"><StickyNote className="mr-2 h-4 w-4" /> Notes ({noteEntries.length})</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="passwords" className="pt-6">
+                            {passwordEntries.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    {passwordEntries.map((entry) => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            onUpdateEntry={handleUpdateEntry}
+                                            onDeleteEntry={handleDeleteEntry}
+                                            categories={categories}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-sm text-muted-foreground">No passwords found.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+                        <TabsContent value="apiKeys" className="pt-6">
+                            {apiKeyEntries.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    {apiKeyEntries.map((entry) => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            onUpdateEntry={handleUpdateEntry}
+                                            onDeleteEntry={handleDeleteEntry}
+                                            categories={categories}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-sm text-muted-foreground">No API keys found.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+                        <TabsContent value="notes" className="pt-6">
+                            {noteEntries.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    {noteEntries.map((entry) => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            onUpdateEntry={handleUpdateEntry}
+                                            onDeleteEntry={handleDeleteEntry}
+                                            categories={categories}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-sm text-muted-foreground">No secure notes found.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 ) : (
                   <div className="text-center py-12">
                     <h3 className="text-lg font-medium">No entries yet</h3>
