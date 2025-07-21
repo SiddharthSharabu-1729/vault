@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -22,7 +23,7 @@ body {
     --muted-foreground: 240 5% 64.9%;
     --accent: 266 40% 51%; /* Electric Purple: #7E57C2 */
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 72% 51%;
+    --destructive: 0 63% 40%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 4% 20%;
     --input: 240 4% 20%;
@@ -49,7 +50,7 @@ body {
     --muted-foreground: 240 5% 64.9%;
     --accent: 266 40% 51%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 72% 51%;
+    --destructive: 0 63% 40%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 4% 20%;
     --input: 240 4% 20%;
@@ -77,7 +78,7 @@ html[class~="light"] {
   --muted-foreground: 240 3.8% 46.1%;
   --accent: 266 40% 51%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 72% 51%; /* Darker Red */
+  --destructive: 0 63% 40%; /* Darker Red */
   --destructive-foreground: 0 0% 98%;
   --border: 240 6% 90%;
   --input: 240 6% 90%;
@@ -126,4 +127,37 @@ html[class~="light"] {
   .prose :where(ol > li::before) {
     color: hsl(var(--muted-foreground));
   }
+  
+  /* Tiptap Table Styles */
+  .prose table {
+    @apply w-full my-4 border-collapse border border-border;
+  }
+  .prose th, .prose td {
+    @apply border border-border px-4 py-2 text-left;
+  }
+  .prose th {
+    @apply font-bold bg-muted;
+  }
+  .prose .selectedCell:after {
+    @apply absolute inset-0 z-[-1] bg-primary/20 pointer-events-none;
+  }
+  .prose .column-resize-handle {
+    @apply absolute top-0 right-[-2px] w-1 h-full cursor-col-resize bg-primary;
+  }
+
+  /* Tiptap Task List Styles */
+  .prose ul[data-type="taskList"] {
+    @apply list-none p-0;
+  }
+  .prose ul[data-type="taskList"] > li {
+    @apply flex items-center;
+  }
+  .prose ul[data-type="taskList"] > li > label {
+    @apply mr-2;
+  }
+  .prose ul[data-type="taskList"] > li > div {
+    @apply flex-grow;
+  }
 }
+
+    

@@ -1,9 +1,9 @@
 
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import {
     Bold,
     Italic,
@@ -18,8 +18,32 @@ import {
     Minus,
     Undo,
     Redo,
+    Underline,
+    SquareCode,
+    ListTodo,
+    Image as ImageIcon,
+    Table,
+    Trash2,
+    Baseline,
+    Pilcrow,
+    ChevronDown,
+    AlignCenter,
+    AlignLeft,
+    AlignRight,
 } from 'lucide-react'
 import { Button } from './ui/button'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
+import TiptapImage from '@tiptap/extension-image'
+import TiptapLink from '@tiptap/extension-link'
+import TiptapTable from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TiptapUnderline from '@tiptap/extension-underline'
+import TextAlign from '@tiptap/extension-text-align'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+
 
 interface EditorProps {
     content: string;
@@ -32,6 +56,14 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
     if (!editor) {
         return null;
     }
+
+    const addImage = useCallback(() => {
+        const url = window.prompt('URL')
+    
+        if (url) {
+          editor.chain().focus().setImage({ src: url }).run()
+        }
+      }, [editor])
 
     return (
         <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-input bg-transparent p-2">
@@ -87,6 +119,16 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 <Italic className="h-4 w-4" />
             </Button>
             <Button
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="Underline"
+                title="Underline"
+                disabled={!editor.isEditable}
+            >
+                <Underline className="h-4 w-4" />
+            </Button>
+            <Button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
                 size="icon"
@@ -95,6 +137,34 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 disabled={!editor.isEditable}
             >
                 <Strikethrough className="h-4 w-4" />
+            </Button>
+             <div className="mx-1 h-6 w-px bg-border" />
+            <Button
+                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                variant={editor.isActive({ textAlign: 'left' }) ? 'secondary' : 'ghost'}
+                size="icon"
+                title="Align Left"
+                disabled={!editor.isEditable}
+            >
+               <AlignLeft className="h-4 w-4" />
+            </Button>
+            <Button
+                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'}
+                size="icon"
+                title="Align Center"
+                disabled={!editor.isEditable}
+            >
+               <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button
+                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                variant={editor.isActive({ textAlign: 'right' }) ? 'secondary' : 'ghost'}
+                size="icon"
+                title="Align Right"
+                disabled={!editor.isEditable}
+            >
+               <AlignRight className="h-4 w-4" />
             </Button>
             <div className="mx-1 h-6 w-px bg-border" />
             <Button
@@ -117,6 +187,16 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
             >
                 <ListOrdered className="h-4 w-4" />
             </Button>
+             <Button
+                onClick={() => editor.chain().focus().toggleTaskList().run()}
+                variant={editor.isActive('taskList') ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="Task List"
+                title="Task List"
+                disabled={!editor.isEditable}
+            >
+                <ListTodo className="h-4 w-4" />
+            </Button>
             <Button
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'}
@@ -135,8 +215,49 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 title="Code Block"
                 disabled={!editor.isEditable}
             >
-                <Code className="h-4 w-4" />
+                <SquareCode className="h-4 w-4" />
             </Button>
+             <Button
+                onClick={addImage}
+                size="icon"
+                variant="ghost"
+                aria-label="Add Image"
+                title="Add Image"
+                disabled={!editor.isEditable}
+            >
+                <ImageIcon className="h-4 w-4" />
+            </Button>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Table Menu"
+                        title="Table Menu"
+                        disabled={!editor.isEditable}
+                    >
+                        <Table className="h-4 w-4" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2">
+                    <div className="flex flex-col gap-1">
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addColumnBefore().run()}>Add column before</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addColumnAfter().run()}>Add column after</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addRowBefore().run()}>Add row before</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row after</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteRow().run()}>Delete row</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().mergeCells().run()}>Merge cells</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().splitCell().run()}>Split cell</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>Toggle header column</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>Toggle header row</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderCell().run()}>Toggle header cell</Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+
              <Button
                 onClick={() => editor.chain().focus().setHorizontalRule().run()}
                 size="icon"
@@ -203,6 +324,27 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
                     }
                 }
             }),
+            TiptapUnderline,
+            TiptapLink.configure({
+                openOnClick: false,
+                autolink: true,
+            }),
+            TiptapImage.configure({
+                inline: true,
+            }),
+            TiptapTable.configure({
+                resizable: true,
+            }),
+            TableRow,
+            TableHeader,
+            TableCell,
+            TaskList,
+            TaskItem.configure({
+                nested: true,
+            }),
+            TextAlign.configure({
+                types: ['heading', 'paragraph'],
+              }),
         ],
         content: content,
         editorProps: {
@@ -232,7 +374,22 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
     return (
         <div className="flex flex-col h-full">
             <EditorToolbar editor={editor} />
+             {editor && <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+                <div className="flex gap-1 bg-background border shadow-md p-1 rounded-md">
+                    <Button size="icon" variant="ghost" onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}>
+                        <Bold className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}>
+                        <Italic className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}>
+                        <Strikethrough className="h-4 w-4" />
+                    </Button>
+                </div>
+            </BubbleMenu>}
             <EditorContent editor={editor} className="flex-grow overflow-y-auto" />
         </div>
     )
 }
+
+    
