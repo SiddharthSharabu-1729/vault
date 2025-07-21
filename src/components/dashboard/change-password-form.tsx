@@ -94,19 +94,25 @@ export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
         description: 'Your password has been changed and your vault has been re-encrypted.',
       });
 
+      // Auto-close dialogs on success after a delay
+      setTimeout(() => {
+        closeAll();
+      }, 2000);
+
+
     } catch (error: any) {
       setProgress('error');
       setProgressError(error.message || 'An unknown error occurred during the update.');
       // No need to toast here as the progress dialog shows the error.
     } finally {
       setIsSaving(false);
-      // Don't close the dialog automatically, let the user close it
+      // Don't close the dialog automatically on error, let the user close it
     }
   };
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) closeAll(); else setOpen(true);}}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -176,8 +182,7 @@ export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
           </form>
         </DialogContent>
       </Dialog>
-      <ReEncryptProgress open={progressOpen} progress={progress} error={progressError} />
+      <ReEncryptProgress open={progressOpen} progress={progress} error={progressError} onOpenChange={(isOpen) => { if (!isOpen) closeAll() }} />
     </>
   );
 }
-

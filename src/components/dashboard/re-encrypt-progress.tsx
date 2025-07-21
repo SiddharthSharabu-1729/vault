@@ -8,9 +8,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { LoaderCircle, CheckCircle, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
 
 
 export type ProgressStep = 
@@ -28,11 +30,11 @@ const stepDetails: Record<ProgressStep, { text: string; Icon: React.ElementType 
     idle: { text: "Starting process...", Icon: LoaderCircle },
     verifying: { text: "Verifying current master password...", Icon: LoaderCircle },
     fetching: { text: "Fetching encrypted vault data...", Icon: LoaderCircle },
-    decrypting: { text: "Decrypting vault with old password...", Icon: LoaderCircle },
-    encrypting: { text: "Re-encrypting vault with new password...", Icon: LoaderCircle },
-    updating: { text: "Securely updating vault entries...", Icon: LoaderCircle },
-    finalizing: { text: "Finalizing account changes...", Icon: LoaderCircle },
-    complete: { text: "Vault successfully re-keyed!", Icon: CheckCircle },
+    decrypting: { text: "Decrypting vault with old key...", Icon: LoaderCircle },
+    encrypting: { text: "Applying new cryptographic key...", Icon: LoaderCircle },
+    updating: { text: "Committing new vault data...", Icon: LoaderCircle },
+    finalizing: { text: "Finalizing key rotation...", Icon: LoaderCircle },
+    complete: { text: "Security upgrade complete!", Icon: CheckCircle },
     error: { text: "An error occurred.", Icon: ShieldAlert },
 }
 
@@ -41,15 +43,19 @@ interface ReEncryptProgressProps {
   open: boolean;
   progress: ProgressStep;
   error?: string | null;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ReEncryptProgress({ open, progress, error }: ReEncryptProgressProps) {
+export function ReEncryptProgress({ open, progress, error, onOpenChange }: ReEncryptProgressProps) {
 
   const getStepStatus = (step: ProgressStep, currentProgress: ProgressStep) => {
     const order: ProgressStep[] = ['verifying', 'fetching', 'decrypting', 'encrypting', 'updating', 'finalizing', 'complete'];
     const currentIndex = order.indexOf(currentProgress);
     const stepIndex = order.indexOf(step);
 
+    if (currentProgress === 'error') {
+      return 'pending';
+    }
     if (stepIndex < currentIndex) {
       return 'complete';
     }
@@ -59,10 +65,12 @@ export function ReEncryptProgress({ open, progress, error }: ReEncryptProgressPr
     return 'pending';
   };
 
+  const isCompleteOrError = progress === 'complete' || progress === 'error';
+
 
   return (
-    <Dialog open={open}>
-      <DialogContent className="sm:max-w-md" hideCloseButton={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md" hideCloseButton={!isCompleteOrError}>
         <DialogHeader>
           <DialogTitle>Updating Vault Security</DialogTitle>
           <DialogDescription>
@@ -73,7 +81,7 @@ export function ReEncryptProgress({ open, progress, error }: ReEncryptProgressPr
             {Object.keys(stepDetails).filter(s => s !== 'idle' && s !== 'error' && s !== 'complete').map(key => {
                 const step = key as ProgressStep;
                 const status = getStepStatus(step, progress);
-                const { text, Icon } = stepDetails[step];
+                const { text } = stepDetails[step];
 
                 return (
                     <div key={step} className="flex items-center gap-3">
@@ -82,7 +90,7 @@ export function ReEncryptProgress({ open, progress, error }: ReEncryptProgressPr
                         ) : status === 'in_progress' ? (
                             <LoaderCircle className="h-4 w-4 animate-spin text-primary" />
                         ) : (
-                            <LoaderCircle className="h-4 w-4 text-muted-foreground" />
+                            <LoaderCircle className="h-4 w-4 text-muted-foreground/30" />
                         )}
                         <span className={cn('transition-colors', {
                             'text-green-500': status === 'complete',
@@ -102,10 +110,15 @@ export function ReEncryptProgress({ open, progress, error }: ReEncryptProgressPr
              </div>
         )}
         {progress === 'error' && (
-            <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <ShieldAlert className="h-5 w-5 text-destructive" />
-                <p className="text-sm font-medium text-destructive">{error || 'An unexpected error occurred. Please try again.'}</p>
-             </div>
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <ShieldAlert className="h-5 w-5 text-destructive" />
+                    <p className="text-sm font-medium text-destructive">{error || 'An unexpected error occurred. Please try again.'}</p>
+                </div>
+                 <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange?.(false)}>Close</Button>
+                </DialogFooter>
+            </div>
         )}
 
       </DialogContent>
