@@ -146,7 +146,7 @@ export function PasswordGenerator({
       toast({
         variant: 'destructive',
         title: 'Missing Fields',
-        description: 'Please fill in Service Name, Username, Category, and Master Password.',
+        description: 'Please fill in Service Name, Username, Category, and Master Password. If changing the password, ensure the field is not empty.',
       });
       return;
     }
@@ -191,6 +191,18 @@ export function PasswordGenerator({
     setIsSaving(false);
     setOpen(false);
   };
+  
+  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (e.target.value) {
+      setPasswordChanged(true);
+    } else if (!isEditing) { // If it's a new entry, password is required
+      setPasswordChanged(true);
+    } else { // If editing and field is cleared, maybe revert to old password state
+      setPasswordChanged(false);
+    }
+  }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -246,13 +258,13 @@ export function PasswordGenerator({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>{isEditing && !passwordChanged ? 'New Password (Optional)' : 'Generated Password'}</Label>
+            <Label>{isEditing && !passwordChanged ? 'New Password (Optional)' : 'Password'}</Label>
             <div className="relative">
               <Input
                 id="password"
                 value={password}
-                readOnly
-                placeholder={isEditing ? 'Fill to change' : ''}
+                onChange={handlePasswordInputChange}
+                placeholder={isEditing ? 'Enter to change, or generate new' : 'Enter or generate a password'}
                 className="pr-20 font-mono text-base"
               />
               <div className="absolute inset-y-0 right-0 flex items-center">

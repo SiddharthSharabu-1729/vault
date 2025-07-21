@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, LogOut, User as UserIcon, Settings, type Icon } from 'lucide-react';
+import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, LogOut, User as UserIcon, Settings, Trash2, type Icon } from 'lucide-react';
 import type { Category } from '@/lib/data';
 import { iconMap } from '@/lib/data';
 import { cn } from '@/lib/utils';
@@ -20,16 +20,32 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog"
 import { Skeleton } from '../ui/skeleton';
 
 interface SidebarProps {
     categories: Category[];
     onAddCategory: (newCategory: Omit<Category, 'id'>) => void;
+    onDeleteCategory: (categoryId: string, categoryName: string) => void;
     loading: boolean;
 }
 
-export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
+export function Sidebar({ categories, onAddCategory, onDeleteCategory, loading }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -72,19 +88,50 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
               const href = `/dashboard/${category.slug}`;
               const isActive = pathname === href;
               const IconComponent = (iconMap[category.icon] || LayoutGrid) as Icon;
+              const isDefaultCategory = category.slug === 'all' || defaultCategories.some(dc => dc.slug === category.slug);
 
               return (
-                  <Link
-                  key={category.slug}
-                  href={href}
-                  className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                      isActive && 'bg-muted text-primary'
-                  )}
-                  >
-                  <IconComponent className="h-4 w-4" />
-                  {category.name}
-                  </Link>
+                <div key={category.slug} className="relative group/item">
+                    <Link
+                      href={href}
+                      className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                          isActive && 'bg-muted text-primary'
+                      )}
+                    >
+                      <IconComponent className="h-4 w-4" />
+                      {category.name}
+                    </Link>
+                    {!isDefaultCategory && (
+                        <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete &quot;{category.name}&quot;?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete this
+                                            category and all password entries within it.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={() => onDeleteCategory(category.id, category.name)}
+                                            className="bg-destructive hover:bg-destructive/90"
+                                        >
+                                            Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    )}
+                </div>
               )
           })
         )}

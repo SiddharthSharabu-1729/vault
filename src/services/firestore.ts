@@ -1,5 +1,5 @@
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
 import type { PasswordEntry } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
@@ -43,6 +43,37 @@ export async function addCategory(categoryData: Omit<Category, 'id'>): Promise<C
     const docRef = await addDoc(categoriesCollection, categoryData);
     return { ...categoryData, id: docRef.id };
 }
+
+export async function deleteCategory(categoryId: string) {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+        throw new Error("User is not authenticated. Cannot delete category.");
+    }
+
+    const batch = writeBatch(db);
+
+    // 1. Find all entries in the category to be deleted
+    const categoryRef = doc(db, 'users', userId, 'categories', categoryId);
+    const categorySlug = (await (await db.doc(categoryRef.path).get())).data()?.slug;
+
+    if (categorySlug) {
+        const entriesCollection = collection(db, 'users', userId, 'entries');
+        const q = query(entriesCollection, where("category", "==", categorySlug));
+        const entriesToDeleteSnapshot = await getDocs(q);
+        
+        // 2. Add delete operations for each entry to the batch
+        entriesToDeleteSnapshot.forEach(entryDoc => {
+            batch.delete(doc(db, 'users', userId, 'entries', entryDoc.id));
+        });
+    }
+
+    // 3. Add the delete operation for the category itself
+    batch.delete(categoryRef);
+
+    // 4. Commit the batch
+    await batch.commit();
+}
+
 
 // == PASSWORD ENTRY FUNCTIONS ==
 
