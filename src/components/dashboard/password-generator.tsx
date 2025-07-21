@@ -30,7 +30,7 @@ import {
 import { getIconForKeyword } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
-import { Tabs, TabsList, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '../ui/textarea';
 import { doVerifyPassword } from '@/services/auth';
 
