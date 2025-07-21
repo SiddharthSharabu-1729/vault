@@ -1,10 +1,11 @@
 
 import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc, serverTimestamp, orderBy } from 'firebase/firestore';
-import type { VaultEntry, ActivityLog } from '@/lib/data';
+import type { VaultEntry, ActivityLog, ProgressStep } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
-import { encryptPassword } from './crypto';
+import { encryptPassword, decryptPassword } from './crypto';
+import { doVerifyPassword } from './auth';
 
 
 // == CATEGORY FUNCTIONS ==
@@ -143,6 +144,60 @@ export async function deleteEntry(entryId: string) {
     }
     const entryRef = doc(db, 'users', userId, 'entries', entryId);
     await deleteDoc(entryRef);
+}
+
+
+// == VAULT RE-ENCRYPTION ==
+
+export async function reEncryptAllEntries(oldMaster: string, newMaster: string, onProgress: (step: ProgressStep) => void) {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+        throw new Error("User not authenticated.");
+    }
+
+    try {
+        // Step 1: Verify old password
+        onProgress('verifying');
+        await doVerifyPassword(oldMaster);
+
+        // Step 2: Fetch all entries
+        onProgress('fetching');
+        const allEntries = await getEntries();
+
+        const batch = writeBatch(db);
+        const entriesCollection = collection(db, 'users', userId, 'entries');
+
+        // Step 3: Decrypt with old, re-encrypt with new
+        onProgress('decrypting');
+        const reEncryptedEntries = await Promise.all(allEntries.map(async (entry) => {
+            const updatedEntry = { ...entry };
+            if (entry.password) {
+                const decrypted = await decryptPassword(entry.password, oldMaster);
+                updatedEntry.password = await encryptPassword(decrypted, newMaster);
+            }
+            if (entry.apiKey) {
+                const decrypted = await decryptPassword(entry.apiKey, oldMaster);
+                updatedEntry.apiKey = await encryptPassword(decrypted, newMaster);
+            }
+            return updatedEntry;
+        }));
+        onProgress('encrypting');
+
+        // Step 4: Batch update all documents
+        reEncryptedEntries.forEach(entry => {
+            const { id, ...data } = entry;
+            const docRef = doc(entriesCollection, id);
+            batch.set(docRef, data);
+        });
+
+        onProgress('updating');
+        await batch.commit();
+
+    } catch (error) {
+        console.error("Vault re-encryption failed:", error);
+        // Re-throw the error to be caught by the calling component
+        throw error;
+    }
 }
 
 

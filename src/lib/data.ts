@@ -104,5 +104,16 @@ export type ActivityLog = {
     timestamp: Timestamp;
 };
 
+export type ProgressStep = 
+  | 'idle'
+  | 'verifying'
+  | 'fetching'
+  | 'decrypting'
+  | 'encrypting'
+  | 'updating'
+  | 'finalizing'
+  | 'complete'
+  | 'error';
+
 
 export const passwordEntries: VaultEntry[] = [];

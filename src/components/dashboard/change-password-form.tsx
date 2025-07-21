@@ -18,6 +18,9 @@ import { Label } from '@/components/ui/label';
 import { KeyRound, LoaderCircle, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doChangePassword } from '@/services/auth';
+import { reEncryptAllEntries } from '@/services/firestore';
+import { ReEncryptProgress, type ProgressStep } from './re-encrypt-progress';
+
 
 interface ChangePasswordFormProps {
   children: React.ReactNode;
@@ -26,10 +29,15 @@ interface ChangePasswordFormProps {
 export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [isSaving, setIsSaving] = useState(false);
+  const [progress, setProgress] = useState<ProgressStep>('idle');
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   const resetForm = () => {
     setCurrentPassword('');
@@ -37,6 +45,16 @@ export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
     setConfirmPassword('');
     setIsSaving(false);
   };
+  
+  const closeAll = () => {
+    setOpen(false);
+    setProgressOpen(false);
+    resetForm();
+    setTimeout(() => {
+        setProgress('idle');
+        setProgressError(null);
+    }, 500);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,95 +76,108 @@ export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
     }
 
     setIsSaving(true);
+    setProgressOpen(true);
+    setProgressError(null);
+
     try {
+      // Step 1: Re-encrypt the entire vault
+      setProgress('verifying');
+      await reEncryptAllEntries(currentPassword, newPassword, (step) => setProgress(step));
+
+      // Step 2: Change the authentication password in Firebase Auth
+      setProgress('finalizing');
       await doChangePassword(currentPassword, newPassword);
+
+      setProgress('complete');
       toast({
-        title: 'Password Updated',
-        description: 'Your account password has been changed successfully.',
+        title: 'Password & Vault Updated',
+        description: 'Your password has been changed and your vault has been re-encrypted.',
       });
-      setOpen(false);
-      resetForm();
+
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: error.message || 'An unknown error occurred.',
-      });
+      setProgress('error');
+      setProgressError(error.message || 'An unknown error occurred during the update.');
+      // No need to toast here as the progress dialog shows the error.
     } finally {
       setIsSaving(false);
+      // Don't close the dialog automatically, let the user close it
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Change Master Password</DialogTitle>
-          <DialogDescription>
-            Enter your current and new password below. This will affect how you log in.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">Current Password</Label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="current-password"
-                  type="password"
-                  required
-                  className="pl-10"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Master Password</DialogTitle>
+            <DialogDescription>
+              This is a high-security operation. Changing your master password will re-encrypt your entire vault.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Current Password</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="current-password"
+                    type="password"
+                    required
+                    className="pl-10"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                 <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="new-password"
+                    type="password"
+                    required
+                    className="pl-10"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                 <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="confirm-new-password"
+                    type="password"
+                    required
+                    className="pl-10"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-               <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="new-password"
-                  type="password"
-                  required
-                  className="pl-10"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-               <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="confirm-new-password"
-                  type="password"
-                  required
-                  className="pl-10"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" onClick={resetForm} disabled={isSaving}>Cancel</Button>
-            </DialogClose>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? (
-                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <ShieldCheck className="mr-2 h-4 w-4" />
-              )}
-              {isSaving ? 'Updating...' : 'Update Password'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" onClick={resetForm} disabled={isSaving}>Cancel</Button>
+              </DialogClose>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                )}
+                {isSaving ? 'Updating...' : 'Update Password'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <ReEncryptProgress open={progressOpen} progress={progress} error={progressError} />
+    </>
   );
 }
+
