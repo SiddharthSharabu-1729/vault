@@ -20,7 +20,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Skeleton } from '../ui/skeleton';
 
 interface NotesViewProps {
     notes: VaultEntry[];
@@ -40,7 +39,20 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
 
     const { toast } = useToast();
 
-    // Effect to update active note when selection or notes list changes
+    // EFFECT 1: Auto-select the first note when the list loads or changes.
+    // This is the key fix. It reacts to the notes prop changing.
+    useEffect(() => {
+        // Condition: notes are available AND (no note is selected OR the selected note is no longer in the list)
+        const noteExists = notes.some(n => n.id === selectedNoteId);
+        if (notes.length > 0 && !noteExists) {
+            setSelectedNoteId(notes[0].id);
+        } else if (notes.length === 0) {
+            setSelectedNoteId(null);
+        }
+    }, [notes, selectedNoteId]);
+
+
+    // EFFECT 2: When the selection changes, update the active note and editor content.
     useEffect(() => {
         if (selectedNoteId) {
             const note = notes.find(n => n.id === selectedNoteId);
@@ -53,15 +65,6 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
             setEditorTitle('');
         }
     }, [selectedNoteId, notes]);
-
-    // Select the first note by default if one exists, or clear selection if list is empty
-    useEffect(() => {
-        if (notes.length > 0 && !notes.find(n => n.id === selectedNoteId)) {
-            setSelectedNoteId(notes[0].id);
-        } else if (notes.length === 0) {
-            setSelectedNoteId(null);
-        }
-    }, [notes, selectedNoteId]);
 
 
     const handleSelectNote = (noteId: string) => {
@@ -79,6 +82,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
             notes: '<p>Start writing your new note here...</p>',
         };
         
+        // This function doesn't need a real password for notes.
         onAddEntry(newNote, 'DUMMY_PASSWORD_FOR_NOTE');
     };
 
