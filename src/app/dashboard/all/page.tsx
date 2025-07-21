@@ -19,7 +19,7 @@ import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
-import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
+import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory, addActivityLog } from '@/services/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -84,6 +84,7 @@ function AllEntriesPage() {
   const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
     try {
       await addCategory(newCategoryData);
+      await addActivityLog('Category Created', `New category "${newCategoryData.name}" was added.`);
       toast({
           title: 'Category Created',
           description: `${newCategoryData.name} has been added.`,
@@ -102,6 +103,7 @@ function AllEntriesPage() {
   const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
     try {
       await addEntry(newEntryData, masterPassword);
+      await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
       toast({
         title: 'Entry Added',
         description: `${newEntryData.title} has been saved to your vault.`,
@@ -119,6 +121,7 @@ function AllEntriesPage() {
   const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
     try {
       await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
+      await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
        toast({
         title: 'Entry Updated',
         description: `${updatedEntry.title} has been updated.`,
@@ -133,9 +136,10 @@ function AllEntriesPage() {
     }
   };
 
-  const handleDeleteEntry = async (id: string) => {
+  const handleDeleteEntry = async (id: string, title: string, type: string) => {
     try {
       await deleteEntry(id);
+      await addActivityLog('Entry Deleted', `The ${type} entry "${title}" was deleted.`);
        toast({
         title: 'Entry Deleted',
         description: `The entry has been removed from your vault.`,

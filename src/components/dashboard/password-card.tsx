@@ -47,12 +47,13 @@ import { iconMap } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { EntryForm } from './password-generator';
 import { decryptPassword } from '@/services/crypto';
+import { addActivityLog } from '@/services/firestore';
 
 
 interface EntryCardProps {
   entry: VaultEntry;
   onUpdateEntry: (updatedEntry: VaultEntry, masterPassword?: string) => void;
-  onDeleteEntry: (id: string) => void;
+  onDeleteEntry: (id: string, title: string, type: string) => void;
   categories: Category[];
 }
 
@@ -114,6 +115,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
       setDecryptedValue(plainText);
       setShowDecryptDialog(false);
       setMasterPassword('');
+      await addActivityLog(`Entry Viewed`, `Revealed the ${entry.type} for "${entry.title}".`);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -244,7 +246,7 @@ export function EntryCard({ entry, onUpdateEntry, onDeleteEntry, categories }: E
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => onDeleteEntry(entry.id)}
+                      onClick={() => onDeleteEntry(entry.id, entry.title, entry.type)}
                       className="bg-destructive hover:bg-destructive/90"
                     >
                       Yes, delete

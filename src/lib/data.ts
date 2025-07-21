@@ -1,5 +1,7 @@
+
 import type { LucideIcon } from 'lucide-react';
 import { Banknote, Briefcase, Globe, LayoutGrid, Users, User, Tv, Folder, FolderPlus, KeyRound, StickyNote } from 'lucide-react';
+import type { Timestamp } from 'firebase/firestore';
 
 export type Category = {
   id: string;
@@ -49,5 +51,13 @@ export type VaultEntry = {
   // API Key field
   apiKey?: string; // encrypted
 };
+
+export type ActivityLog = {
+    id: string;
+    action: string;
+    details: string;
+    timestamp: Timestamp;
+};
+
 
 export const passwordEntries: VaultEntry[] = [];

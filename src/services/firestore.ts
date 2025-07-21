@@ -1,6 +1,7 @@
+
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc } from 'firebase/firestore';
-import type { VaultEntry } from '@/lib/data';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import type { VaultEntry, ActivityLog } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
 import { encryptPassword } from './crypto';
@@ -142,4 +143,36 @@ export async function deleteEntry(entryId: string) {
     }
     const entryRef = doc(db, 'users', userId, 'entries', entryId);
     await deleteDoc(entryRef);
+}
+
+
+// == ACTIVITY LOG FUNCTIONS ==
+
+export async function addActivityLog(action: string, details: string, userIdOverride?: string) {
+    const userId = userIdOverride || auth.currentUser?.uid;
+    if (!userId) {
+      console.warn('Cannot add activity log: user not authenticated.');
+      return;
+    }
+  
+    const logData = {
+      action,
+      details,
+      timestamp: serverTimestamp(),
+    };
+  
+    const activityCollection = collection(db, 'users', userId, 'activity');
+    await addDoc(activityCollection, logData);
+}
+
+export async function getActivityLogs(): Promise<ActivityLog[]> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+        return [];
+    }
+    const activityCollection = collection(db, 'users', userId, 'activity');
+    const q = query(activityCollection, orderBy('timestamp', 'desc'));
+    const logSnapshot = await getDocs(q);
+    
+    return logSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as ActivityLog));
 }

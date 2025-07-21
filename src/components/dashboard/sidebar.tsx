@@ -6,12 +6,12 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShieldCheck, LoaderCircle, LayoutGrid, PlusCircle, LogOut, User as UserIcon, Settings, type Icon } from 'lucide-react';
 import type { Category } from '@/lib/data';
-import { iconMap, defaultCategories } from '@/lib/data';
+import { iconMap } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CategoryCreator } from './category-creator';
 import { useAuth } from '@/contexts/authContext';
-import { doSignOut } from '@/services/auth';
+import { doSignOut, addActivityLog } from '@/services/auth';
 import { ThemeToggle } from './theme-toggle';
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    await addActivityLog('User Logged Out', `User ${currentUser?.email} logged out.`);
     await doSignOut();
     router.push('/');
   };
@@ -116,9 +117,11 @@ export function Sidebar({ categories, onAddCategory, loading }: SidebarProps) {
                     <span>Theme</span>
                     <ThemeToggle />
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    <span>Settings & Activity</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
