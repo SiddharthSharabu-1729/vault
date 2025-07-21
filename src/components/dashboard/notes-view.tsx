@@ -132,9 +132,9 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[60vh]">
-            {/* Editor Pane */}
+            {/* Editor Pane (Left Side) */}
             <div className="md:col-span-2 lg:col-span-3 flex flex-col border rounded-lg p-4">
-                {selectedNoteId || notes.length > 0 ? (
+                {notes.length > 0 || (activeNote === null && editorTitle === 'New Note') ? (
                     <>
                         <div className="flex items-center justify-between mb-4">
                            <input
@@ -184,7 +184,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                 )}
             </div>
 
-            {/* Note List Pane */}
+            {/* Note List Pane (Right Side) */}
             <div className="md:col-span-1 lg:col-span-1 border rounded-lg">
                 <div className="p-4 border-b">
                     <Button onClick={handleNewNote} className="w-full">
@@ -192,7 +192,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                         New Note
                     </Button>
                 </div>
-                <ScrollArea className="h-[55vh]">
+                <ScrollArea className="h-[calc(60vh-60px)]">
                     <div className="p-2">
                         {notes.length > 0 ? (
                             notes.map(note => (
