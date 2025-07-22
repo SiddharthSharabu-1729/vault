@@ -76,9 +76,9 @@ html[class~="light"] {
   --primary-foreground: 0 0% 98%;
   --secondary: 240 5% 95%;
   --secondary-foreground: 240 10% 3.9%;
-  --muted: 240 5% 95%;
+  --muted: 240 5% 90%;
   --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 5% 90%;
+  --accent: 240 5% 85%;
   --accent-foreground: 240 10% 3.9%;
   --destructive: 0 63% 40%;
   --destructive-foreground: 0 0% 98%;
