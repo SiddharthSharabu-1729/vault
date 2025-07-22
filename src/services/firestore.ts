@@ -149,7 +149,7 @@ export async function deleteEntry(entryId: string) {
 
 // == VAULT RE-ENCRYPTION ==
 
-export async function reEncryptAllEntries(oldMaster: string, newMaster: string, onProgress: (step: ProgressStep) => void) {
+export async function reEncryptAllEntries(allEntries: VaultEntry[], oldMaster: string, newMaster: string, onProgress: (step: ProgressStep) => void) {
     const userId = auth.currentUser?.uid;
     if (!userId) {
         throw new Error("User not authenticated.");
@@ -159,15 +159,12 @@ export async function reEncryptAllEntries(oldMaster: string, newMaster: string, 
         // Step 1: Verify old password
         onProgress('verifying');
         await doVerifyPassword(oldMaster);
-
-        // Step 2: Fetch all entries
-        onProgress('fetching');
-        const allEntries = await getEntries();
+        onProgress('fetching'); // This step is now just a formality in the UI
 
         const batch = writeBatch(db);
         const entriesCollection = collection(db, 'users', userId, 'entries');
 
-        // Step 3: Decrypt with old, re-encrypt with new
+        // Step 2: Decrypt with old, re-encrypt with new
         onProgress('decrypting');
         const reEncryptedEntries = await Promise.all(allEntries.map(async (entry) => {
             const updatedEntry = { ...entry };
@@ -183,7 +180,7 @@ export async function reEncryptAllEntries(oldMaster: string, newMaster: string, 
         }));
         onProgress('encrypting');
 
-        // Step 4: Batch update all documents
+        // Step 3: Batch update all documents
         reEncryptedEntries.forEach(entry => {
             const { id, ...data } = entry;
             const docRef = doc(entriesCollection, id);

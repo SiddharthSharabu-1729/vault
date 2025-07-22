@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { doChangePassword } from '@/services/auth';
 import { reEncryptAllEntries } from '@/services/firestore';
 import { ReEncryptProgress, type ProgressStep } from './re-encrypt-progress';
+import { useVault } from '@/contexts/vaultContext';
 
 
 interface ChangePasswordFormProps {
@@ -28,6 +29,8 @@ interface ChangePasswordFormProps {
 
 export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
   const { toast } = useToast();
+  const { entries } = useVault();
+
   const [open, setOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
 
@@ -82,7 +85,7 @@ export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
     try {
       // Step 1: Re-encrypt the entire vault
       setProgress('verifying');
-      await reEncryptAllEntries(currentPassword, newPassword, (step) => setProgress(step));
+      await reEncryptAllEntries(entries, currentPassword, newPassword, (step) => setProgress(step));
 
       // Step 2: Change the authentication password in Firebase Auth
       setProgress('finalizing');
