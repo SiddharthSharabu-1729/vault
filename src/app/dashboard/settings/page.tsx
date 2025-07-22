@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Shield, Clock, ShieldAlert } from 'lucide-react';
+import { User, Mail, Shield, Clock, ShieldAlert, Terminal, Lock, KeyRound, StickyNote, Folder, Sigma } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChangePasswordForm } from '@/components/dashboard/change-password-form';
@@ -28,7 +28,7 @@ import { DeleteAccountForm } from '@/components/dashboard/delete-account-form';
 
 function SettingsPage() {
   const { currentUser } = useAuth();
-  const { categories, addCategory, loading: vaultLoading } = useVault();
+  const { categories, addCategory, loading: vaultLoading, entries } = useVault();
   const { toast } = useToast();
   
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -69,6 +69,19 @@ function SettingsPage() {
     }
   }
 
+  const vaultStats = React.useMemo(() => {
+    const passwordCount = entries.filter(e => e.type === 'password').length;
+    const apiKeyCount = entries.filter(e => e.type === 'apiKey').length;
+    const noteCount = entries.filter(e => e.type === 'note').length;
+    return {
+        total: entries.length,
+        passwords: passwordCount,
+        apiKeys: apiKeyCount,
+        notes: noteCount,
+        categories: categories.length
+    }
+  }, [entries, categories]);
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar categories={categories} onAddCategory={addCategory} loading={vaultLoading} />
@@ -76,7 +89,7 @@ function SettingsPage() {
         <Header categories={categories} onAddCategory={addCategory} loading={vaultLoading} showSearch={false} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-3 space-y-8">
+            <div className="lg:col-span-2 space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Account Profile</CardTitle>
@@ -139,11 +152,11 @@ function SettingsPage() {
                   <CardDescription>A log of all significant activity in your account.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 font-mono text-sm">
                     {logsLoading ? (
                       Array.from({length: 5}).map((_, i) => (
                         <div key={i} className="flex items-start space-x-4">
-                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <Skeleton className="h-5 w-5" />
                           <div className="space-y-2 flex-1">
                             <Skeleton className="h-4 w-1/2" />
                             <Skeleton className="h-4 w-3/4" />
@@ -152,14 +165,11 @@ function SettingsPage() {
                       ))
                     ) : activityLogs.length > 0 ? (
                       activityLogs.map(log => (
-                        <div key={log.id} className="flex items-start space-x-4">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                            <User className="h-5 w-5 text-muted-foreground" />
-                          </div>
+                        <div key={log.id} className="flex items-start gap-3">
+                          <Terminal className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                           <div className="flex-1">
-                            <p className="font-medium">{log.action}</p>
-                            <p className="text-sm text-muted-foreground">{log.details}</p>
-                            <p className="text-xs text-muted-foreground pt-1">{formatDate(log.timestamp)}</p>
+                            <p className="text-foreground">{log.action}: <span className="text-muted-foreground">{log.details}</span></p>
+                            <p className="text-xs text-muted-foreground/70">{formatDate(log.timestamp)}</p>
                           </div>
                         </div>
                       ))
@@ -171,6 +181,50 @@ function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+            <div className="lg:col-span-1 space-y-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Vault Statistics</CardTitle>
+                        <CardDescription>An overview of your encrypted data.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                         {vaultLoading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="flex items-center justify-between animate-pulse">
+                                    <div className="flex items-center gap-3">
+                                        <Skeleton className="h-5 w-5" />
+                                        <Skeleton className="h-4 w-24" />
+                                    </div>
+                                    <Skeleton className="h-4 w-8" />
+                                </div>
+                            ))
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-muted-foreground"><Sigma className="h-4 w-4" /><span>Total Entries</span></div>
+                                    <span className="font-semibold">{vaultStats.total}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-muted-foreground"><Lock className="h-4 w-4" /><span>Passwords</span></div>
+                                    <span className="font-semibold">{vaultStats.passwords}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-muted-foreground"><KeyRound className="h-4 w-4" /><span>API Keys</span></div>
+                                    <span className="font-semibold">{vaultStats.apiKeys}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-muted-foreground"><StickyNote className="h-4 w-4" /><span>Notes</span></div>
+                                    <span className="font-semibold">{vaultStats.notes}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-muted-foreground"><Folder className="h-4 w-4" /><span>Categories</span></div>
+                                    <span className="font-semibold">{vaultStats.categories}</span>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
 
                <Card className="border-destructive/50">
                 <CardHeader>
