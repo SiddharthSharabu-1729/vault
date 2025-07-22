@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import TurndownService from 'turndown';
+import { tables } from 'turndown-plugin-gfm';
 
 
 interface NotesViewProps {
@@ -43,7 +44,9 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     const { toast } = useToast();
     
     useEffect(() => {
-        setTurndownService(new TurndownService({ gfm: true }));
+        const service = new TurndownService({ headingStyle: 'atx' });
+        service.use(tables);
+        setTurndownService(service);
     }, []);
 
     // EFFECT 1: Auto-select the first note when the list loads or changes.
