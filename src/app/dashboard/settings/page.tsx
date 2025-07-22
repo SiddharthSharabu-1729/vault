@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
@@ -10,7 +10,6 @@ import { useVault } from '@/contexts/vaultContext';
 import { useToast } from '@/hooks/use-toast';
 import type { ActivityLog } from '@/lib/data';
 import { getActivityLogs } from '@/services/firestore';
-import { updateUserProfilePicture } from '@/services/auth';
 import {
   Card,
   CardContent,
@@ -21,22 +20,19 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Shield, Clock, ShieldAlert, Terminal, Lock, KeyRound, StickyNote, Folder, Sigma, Camera, LoaderCircle } from 'lucide-react';
+import { User, Mail, Shield, Clock, ShieldAlert, Terminal, Lock, KeyRound, StickyNote, Folder, Sigma } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChangePasswordForm } from '@/components/dashboard/change-password-form';
 import { DeleteAccountForm } from '@/components/dashboard/delete-account-form';
 
 function SettingsPage() {
-  const { currentUser, setCurrentUser } = useAuth();
+  const { currentUser } = useAuth();
   const { categories, addCategory, loading: vaultLoading, entries } = useVault();
   const { toast } = useToast();
   
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pageLoading = vaultLoading || logsLoading;
 
@@ -63,37 +59,6 @@ function SettingsPage() {
       fetchLogs();
     }
   }, [currentUser, toast]);
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && currentUser) {
-      setIsUploading(true);
-      try {
-        const photoURL = await updateUserProfilePicture(file, currentUser.uid);
-        // Create a new user object with the updated photoURL
-        const updatedUser = { ...currentUser, photoURL };
-        // Update the user in the auth context
-        setCurrentUser(updatedUser);
-        
-        toast({
-          title: 'Avatar Updated',
-          description: 'Your new profile picture has been saved.',
-        });
-      } catch (error: any) {
-        toast({
-          variant: 'destructive',
-          title: 'Upload Failed',
-          description: error.message || 'Could not upload the new avatar.',
-        });
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
 
 
   const formatDate = (timestamp: any) => {
@@ -150,31 +115,10 @@ function SettingsPage() {
                     ) : (
                         <>
                             <div className="flex items-center gap-4">
-                                <div className="relative group">
-                                     <Avatar className="h-20 w-20">
-                                        <AvatarImage src={currentUser?.photoURL || `https://api.dicebear.com/8.x/initials/svg?seed=${currentUser?.email}`} alt="Avatar" />
-                                        <AvatarFallback>{currentUser?.email?.[0].toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                    <button
-                                        onClick={handleAvatarClick}
-                                        disabled={isUploading}
-                                        className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        {isUploading ? (
-                                            <LoaderCircle className="h-6 w-6 text-white animate-spin" />
-                                        ) : (
-                                            <Camera className="h-6 w-6 text-white" />
-                                        )}
-                                    </button>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                        accept="image/png, image/jpeg"
-                                    />
-                                </div>
-
+                                 <Avatar className="h-20 w-20">
+                                    <AvatarImage src={currentUser?.photoURL || `https://api.dicebear.com/8.x/initials/svg?seed=${currentUser?.email}`} alt="Avatar" />
+                                    <AvatarFallback>{currentUser?.email?.[0].toUpperCase()}</AvatarFallback>
+                                </Avatar>
                                 <div className="flex flex-col">
                                     <h3 className="text-lg font-semibold break-all">{currentUser?.email}</h3>
                                     <p className="text-sm text-muted-foreground">Fortress Vault User</p>
