@@ -50,8 +50,8 @@ export const doPasswordReset = (email: string) => {
 
 export const doChangePassword = async (currentPassword, newPassword) => {
     const user = auth.currentUser;
-    if (!user) {
-      throw new Error("User not found.");
+    if (!user || !user.email) {
+      throw new Error("User not found or email is missing.");
     }
   
     // The user should have been recently re-authenticated by `doVerifyPassword`
@@ -59,9 +59,10 @@ export const doChangePassword = async (currentPassword, newPassword) => {
     try {
       await updatePassword(user, newPassword);
       
-      // NOTE: Firebase automatically sends a secure "Password Changed" notification
-      // email to the user. No additional code is needed for this step.
-      
+      // Explicitly send a security alert email to the user, confirming the change.
+      // This allows them to take action if the change was not made by them.
+      await sendPasswordResetEmail(auth, user.email);
+
       // Log the successful password change.
       await addLog('Password Changed', 'User successfully changed their password.');
     } catch (error: any) {
@@ -124,3 +125,4 @@ export const getFriendlyAuthErrorMessage = (error: any): string => {
         return 'An unexpected error occurred. Please try again.';
     }
 };
+
