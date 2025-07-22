@@ -22,18 +22,18 @@ import {
     SquareCode,
     ListTodo,
     Table,
-    Trash2,
     Baseline,
     Pilcrow,
     ChevronDown,
     AlignCenter,
     AlignLeft,
     AlignRight,
+    Palette,
+    Highlighter,
 } from 'lucide-react'
 import { Button } from './ui/button'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
 import TiptapTable from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
@@ -41,7 +41,11 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TiptapUnderline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
+import TextStyle from '@tiptap/extension-text-style'
+import { Color } from '@tiptap/extension-color'
+import Highlight from '@tiptap/extension-highlight'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { Input } from './ui/input'
 
 
 interface EditorProps {
@@ -56,39 +60,27 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
         return null;
     }
 
+    const setLink = useCallback(() => {
+        const previousUrl = editor.getAttributes('link').href
+        const url = window.prompt('URL', previousUrl)
+
+        // cancelled
+        if (url === null) {
+            return
+        }
+
+        // empty
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run()
+            return
+        }
+
+        // update link
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+    }, [editor])
+
     return (
         <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-input bg-transparent p-2">
-            <Button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
-                size="icon"
-                aria-label="Heading 1"
-                title="Heading 1"
-                disabled={!editor.isEditable}
-            >
-                <Heading1 className="h-4 w-4" />
-            </Button>
-            <Button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
-                size="icon"
-                aria-label="Heading 2"
-                title="Heading 2"
-                disabled={!editor.isEditable}
-            >
-                <Heading2 className="h-4 w-4" />
-            </Button>
-            <Button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
-                size="icon"
-                aria-label="Heading 3"
-                title="Heading 3"
-                disabled={!editor.isEditable}
-            >
-                <Heading3 className="h-4 w-4" />
-            </Button>
-            <div className="mx-1 h-6 w-px bg-border" />
             <Button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
@@ -129,7 +121,73 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
             >
                 <Strikethrough className="h-4 w-4" />
             </Button>
-             <div className="mx-1 h-6 w-px bg-border" />
+            <div className="mx-1 h-6 w-px bg-border" />
+             <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Text Color"
+                        title="Text Color"
+                        disabled={!editor.isEditable}
+                    >
+                        <Palette className="h-4 w-4" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2">
+                    <div className="flex flex-col gap-1">
+                        <Input type="color" className="p-0"
+                            onInput={(event: React.ChangeEvent<HTMLInputElement>) => editor.chain().focus().setColor(event.target.value).run()}
+                            value={editor.getAttributes('textStyle').color}
+                        />
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().unsetColor().run()}>
+                            Reset Color
+                        </Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+            <Button
+                onClick={() => editor.chain().focus().toggleHighlight({ color: '#ffcc00' }).run()}
+                variant={editor.isActive('highlight', { color: '#ffcc00' }) ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="Highlight"
+                title="Highlight"
+                disabled={!editor.isEditable}
+            >
+                <Highlighter className="h-4 w-4" />
+            </Button>
+            <div className="mx-1 h-6 w-px bg-border" />
+            <Button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="Heading 1"
+                title="Heading 1"
+                disabled={!editor.isEditable}
+            >
+                <Heading1 className="h-4 w-4" />
+            </Button>
+            <Button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="Heading 2"
+                title="Heading 2"
+                disabled={!editor.isEditable}
+            >
+                <Heading2 className="h-4 w-4" />
+            </Button>
+            <Button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="Heading 3"
+                title="Heading 3"
+                disabled={!editor.isEditable}
+            >
+                <Heading3 className="h-4 w-4" />
+            </Button>
+            <div className="mx-1 h-6 w-px bg-border" />
             <Button
                 onClick={() => editor.chain().focus().setTextAlign('left').run()}
                 variant={editor.isActive({ textAlign: 'left' }) ? 'secondary' : 'ghost'}
@@ -208,7 +266,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
             >
                 <SquareCode className="h-4 w-4" />
             </Button>
-            <Popover>
+             <Popover>
                 <PopoverTrigger asChild>
                     <Button
                         size="icon"
@@ -223,18 +281,18 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 <PopoverContent className="w-auto p-2">
                     <div className="flex flex-col gap-1">
                         <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addColumnBefore().run()}>Add column before</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addColumnAfter().run()}>Add column after</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addRowBefore().run()}>Add row before</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row after</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteRow().run()}>Delete row</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().mergeCells().run()}>Merge cells</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().splitCell().run()}>Split cell</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>Toggle header column</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>Toggle header row</Button>
-                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderCell().run()}>Toggle header cell</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addColumnBefore().run()} disabled={!editor.can().addColumnBefore()}>Add column before</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addColumnAfter().run()} disabled={!editor.can().addColumnAfter()}>Add column after</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteColumn().run()} disabled={!editor.can().deleteColumn()}>Delete column</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addRowBefore().run()} disabled={!editor.can().addRowBefore()}>Add row before</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().addRowAfter().run()} disabled={!editor.can().addRowAfter()}>Add row after</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteRow().run()} disabled={!editor.can().deleteRow()}>Delete row</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().deleteTable().run()} disabled={!editor.can().deleteTable()}>Delete table</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().mergeCells().run()} disabled={!editor.can().mergeCells()}>Merge cells</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().splitCell().run()} disabled={!editor.can().splitCell()}>Split cell</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderColumn().run()} disabled={!editor.can().toggleHeaderColumn()}>Toggle header column</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderRow().run()} disabled={!editor.can().toggleHeaderRow()}>Toggle header row</Button>
+                        <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().toggleHeaderCell().run()} disabled={!editor.can().toggleHeaderCell()}>Toggle header cell</Button>
                     </div>
                 </PopoverContent>
             </Popover>
@@ -310,9 +368,6 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
                 openOnClick: false,
                 autolink: true,
             }),
-            TiptapImage.configure({
-                inline: true,
-            }),
             TiptapTable.configure({
                 resizable: true,
             }),
@@ -326,6 +381,9 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
             TextAlign.configure({
                 types: ['heading', 'paragraph'],
               }),
+            TextStyle,
+            Color,
+            Highlight.configure({ multicolor: true }),
         ],
         content: content,
         editorProps: {

@@ -36,25 +36,25 @@ body {
   }
 
   .dark {
-    --background: 240 8% 12%;
-    --foreground: 0 0% 98%;
-    --card: 240 8% 12%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 8% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 231 48% 48%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4% 18%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 18%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 266 40% 51%;
+    --background: 260 10% 15%;
+    --foreground: 260 5% 95%;
+    --card: 260 10% 15%;
+    --card-foreground: 260 5% 95%;
+    --popover: 260 10% 12%;
+    --popover-foreground: 260 5% 95%;
+    --primary: 266 60% 68%;
+    --primary-foreground: 260 5% 98%;
+    --secondary: 260 10% 22%;
+    --secondary-foreground: 260 5% 98%;
+    --muted: 260 10% 22%;
+    --muted-foreground: 260 5% 65%;
+    --accent: 231 48% 48%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 63% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 20%;
-    --input: 240 4% 20%;
-    --ring: 231 48% 48%;
+    --border: 260 10% 25%;
+    --input: 260 10% 25%;
+    --ring: 266 60% 68%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -159,5 +159,3 @@ html[class~="light"] {
     @apply flex-grow;
   }
 }
-
-    
