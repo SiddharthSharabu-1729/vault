@@ -3,7 +3,7 @@
 
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { useEffect, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import {
     Bold,
     Italic,
@@ -21,7 +21,6 @@ import {
     Underline,
     SquareCode,
     ListTodo,
-    Image as ImageIcon,
     Table,
     Trash2,
     Baseline,
@@ -56,14 +55,6 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
     if (!editor) {
         return null;
     }
-
-    const addImage = useCallback(() => {
-        const url = window.prompt('URL')
-    
-        if (url) {
-          editor.chain().focus().setImage({ src: url }).run()
-        }
-      }, [editor])
 
     return (
         <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-input bg-transparent p-2">
@@ -217,16 +208,6 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
             >
                 <SquareCode className="h-4 w-4" />
             </Button>
-             <Button
-                onClick={addImage}
-                size="icon"
-                variant="ghost"
-                aria-label="Add Image"
-                title="Add Image"
-                disabled={!editor.isEditable}
-            >
-                <ImageIcon className="h-4 w-4" />
-            </Button>
             <Popover>
                 <PopoverTrigger asChild>
                     <Button
@@ -350,7 +331,7 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
         editorProps: {
             attributes: {
                 class:
-                    'prose prose-sm dark:prose-invert max-w-none min-h-[45vh] rounded-b-md border-x border-b border-input bg-transparent px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                    'prose prose-sm max-w-none min-h-[45vh] rounded-b-md border-x border-b border-input bg-transparent px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
             },
         },
         onUpdate({ editor }) {
@@ -391,5 +372,3 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
         </div>
     )
 }
-
-    

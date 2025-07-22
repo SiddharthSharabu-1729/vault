@@ -130,7 +130,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[60vh]">
             {/* Editor Pane (Left Side) */}
-            <div className="md:col-span-2 lg:col-span-3 flex flex-col border rounded-lg p-4">
+            <div className="md:col-span-2 lg:col-span-3 flex flex-col border rounded-lg p-4 bg-white text-neutral-900">
                 {notes.length > 0 || activeNote ? (
                     <>
                         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -174,7 +174,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full">
-                        <p className="text-muted-foreground mb-4">You have no notes in this category.</p>
+                        <p className="text-neutral-500 mb-4">You have no notes in this category.</p>
                         <Button onClick={handleNewNote}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Create Your First Note
@@ -184,7 +184,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
             </div>
 
             {/* Note List Pane (Right Side) */}
-            <div className="md:col-span-1 lg:col-span-1 border rounded-lg">
+            <div className="md:col-span-1 lg:col-span-1 border rounded-lg bg-white text-neutral-900">
                 <div className="p-4 border-b">
                     <Button onClick={handleNewNote} className="w-full">
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -200,18 +200,18 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                                     onClick={() => handleSelectNote(note.id)}
                                     className={cn(
                                         "w-full text-left p-3 rounded-lg mb-1 transition-colors",
-                                        selectedNoteId === note.id ? "bg-muted" : "hover:bg-muted/50"
+                                        selectedNoteId === note.id ? "bg-neutral-100" : "hover:bg-neutral-100/50"
                                     )}
                                 >
                                     <h4 className="font-semibold truncate">{note.title}</h4>
-                                    <p className="text-xs text-muted-foreground truncate"
+                                    <p className="text-xs text-neutral-500 truncate"
                                       dangerouslySetInnerHTML={{ __html: note.notes?.replace(/<[^>]+>/g, ' ').substring(0, 100) || 'No content...' }}
                                     />
                                 </button>
                             ))
                         ) : (
                            <div className="p-4 text-center">
-                                <p className="text-sm text-muted-foreground">No notes here.</p>
+                                <p className="text-sm text-neutral-500">No notes here.</p>
                            </div>
                         )}
                     </div>
