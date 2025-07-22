@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
-import type { VaultEntry, Category } from '@/lib/data';
+import type { VaultEntry } from '@/lib/data';
 import { PlusCircle, KeyRound, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,53 +18,23 @@ import {
 import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
-import { useAuth } from '@/contexts/authContext';
-import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory } from '@/services/firestore';
-import { addActivityLog } from '@/services/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useVault } from '@/contexts/vaultContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function AllEntriesPage() {
-  const { currentUser } = useAuth();
-  const { toast } = useToast();
+  const { 
+    entries, 
+    categories, 
+    loading,
+    addCategory, 
+    addEntry, 
+    updateEntry, 
+    deleteEntry 
+  } = useVault();
 
-  const [entries, setEntries] = useState<VaultEntry[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<VaultEntry[]>([]);
-  const [pageLoading, setPageLoading] = useState(true);
-
   const searchParams = useSearchParams();
-
-  const fetchAllData = async () => {
-    if (!currentUser) return;
-
-    setPageLoading(true);
-    try {
-      const [userEntries, userCategories] = await Promise.all([
-        getEntries(),
-        getCategories(),
-      ]);
-      setEntries(userEntries);
-      setCategories(userCategories);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Error Fetching Data',
-        description: 'Could not load your vault. Please try again later.',
-      });
-    } finally {
-      setPageLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if(currentUser) {
-        fetchAllData();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
 
   useEffect(() => {
     const searchTerm = searchParams.get('q')?.toLowerCase() || '';
@@ -81,87 +51,14 @@ function AllEntriesPage() {
     setFilteredEntries(newFilteredEntries);
   }, [entries, searchParams]);
   
-  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
-    try {
-      await addCategory(newCategoryData);
-      await addActivityLog('Category Created', `New category "${newCategoryData.name}" was added.`);
-      toast({
-          title: 'Category Created',
-          description: `${newCategoryData.name} has been successfully added.`,
-      });
-      await fetchAllData();
-    } catch (error: any) {
-      console.error("Error creating category:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Category Creation Failed',
-        description: error.message || 'Failed to create the new category. Please try again.',
-      });
-    }
-  };
-
-  const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
-    try {
-      await addEntry(newEntryData, masterPassword);
-      await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
-      toast({
-        title: 'Entry Added',
-        description: `${newEntryData.title} has been saved to your vault.`,
-      });
-      await fetchAllData();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Save Failed',
-        description: 'Could not save the new entry. Please try again.',
-      });
-    }
-  };
-
-  const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
-    try {
-      await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
-      await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
-       toast({
-        title: 'Entry Updated',
-        description: `${updatedEntry.title} has been successfully updated.`,
-      });
-       await fetchAllData();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: 'Could not update the entry. Please try again.',
-      });
-    }
-  };
-
-  const handleDeleteEntry = async (id: string, title: string, type: string) => {
-    try {
-      await deleteEntry(id);
-      await addActivityLog('Entry Deleted', `The ${type} entry "${title}" was deleted.`);
-       toast({
-        title: 'Entry Deleted',
-        description: `The entry has been removed from your vault.`,
-      });
-      await fetchAllData();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Deletion Failed',
-        description: 'Could not delete the entry. Please try again.',
-      });
-    }
-  };
-
   const passwordEntries = filteredEntries.filter(e => e.type === 'password');
   const apiKeyEntries = filteredEntries.filter(e => e.type === 'apiKey');
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
+      <Sidebar categories={categories} onAddCategory={addCategory} loading={loading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
+        <Header categories={categories} onAddCategory={addCategory} loading={loading} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
             <Card>
@@ -173,7 +70,7 @@ function AllEntriesPage() {
                       Manage your saved passwords and API keys.
                     </CardDescription>
                   </div>
-                  <EntryForm onAddEntry={handleAddEntry} onUpdateEntry={handleUpdateEntry} categories={categories}>
+                  <EntryForm onAddEntry={addEntry} onUpdateEntry={updateEntry} categories={categories}>
                     <Button>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add New
@@ -182,7 +79,7 @@ function AllEntriesPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {pageLoading ? (
+                {loading ? (
                   <div className="space-y-6">
                     <div className="flex justify-center">
                         <Skeleton className="h-10 w-2/3" />
@@ -206,8 +103,8 @@ function AllEntriesPage() {
                                         <EntryCard
                                             key={entry.id}
                                             entry={entry}
-                                            onUpdateEntry={handleUpdateEntry}
-                                            onDeleteEntry={handleDeleteEntry}
+                                            onUpdateEntry={updateEntry}
+                                            onDeleteEntry={deleteEntry}
                                             categories={categories}
                                         />
                                     ))}
@@ -225,8 +122,8 @@ function AllEntriesPage() {
                                         <EntryCard
                                             key={entry.id}
                                             entry={entry}
-                                            onUpdateEntry={handleUpdateEntry}
-                                            onDeleteEntry={handleDeleteEntry}
+                                            onUpdateEntry={updateEntry}
+                                            onDeleteEntry={deleteEntry}
                                             categories={categories}
                                         />
                                     ))}

@@ -6,10 +6,10 @@ import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
 import { useAuth } from '@/contexts/authContext';
+import { useVault } from '@/contexts/vaultContext';
 import { useToast } from '@/hooks/use-toast';
-import type { Category, ActivityLog } from '@/lib/data';
-import { getCategories, addCategory, getActivityLogs } from '@/services/firestore';
-import { addActivityLog } from '@/services/auth';
+import type { ActivityLog } from '@/lib/data';
+import { getActivityLogs } from '@/services/firestore';
 import {
   Card,
   CardContent,
@@ -27,60 +27,38 @@ import { ChangePasswordForm } from '@/components/dashboard/change-password-form'
 
 function SettingsPage() {
   const { currentUser } = useAuth();
+  const { categories, addCategory, loading: vaultLoading } = useVault();
   const { toast } = useToast();
   
-  const [categories, setCategories] = useState<Category[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [logsLoading, setLogsLoading] = useState(true);
 
-  const fetchAllData = async () => {
-    if (!currentUser) return;
-    setPageLoading(true);
-    try {
-      const [userCategories, userLogs] = await Promise.all([
-        getCategories(),
-        getActivityLogs(),
-      ]);
-      setCategories(userCategories);
-      setActivityLogs(userLogs);
-    } catch (error) {
-      console.error("Error fetching settings data:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Error Loading Data',
-        description: 'Could not load your settings and activity log.',
-      });
-    } finally {
-      setPageLoading(false);
-    }
-  };
+  const pageLoading = vaultLoading || logsLoading;
 
   useEffect(() => {
+    const fetchLogs = async () => {
+      if (!currentUser) return;
+      setLogsLoading(true);
+      try {
+        const userLogs = await getActivityLogs();
+        setActivityLogs(userLogs);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Error Loading Activity',
+          description: 'Could not load your activity log.',
+        });
+      } finally {
+        setLogsLoading(false);
+      }
+    };
+    
     if (currentUser) {
-      fetchAllData();
+      fetchLogs();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, toast]);
 
-  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
-    try {
-      await addCategory(newCategoryData);
-      await addActivityLog('Category Created', `New category "${newCategoryData.name}" was added.`);
-      toast({
-        title: 'Category Created',
-        description: `${newCategoryData.name} has been added.`,
-      });
-      await fetchAllData(); // Refresh categories and logs
-    } catch (error) {
-      console.error("Error creating category:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Category Creation Failed',
-        description: 'Failed to create the new category. Please try again.',
-      });
-    }
-  };
-  
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Just now';
     try {
@@ -92,9 +70,9 @@ function SettingsPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
+      <Sidebar categories={categories} onAddCategory={addCategory} loading={vaultLoading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} showSearch={false} />
+        <Header categories={categories} onAddCategory={addCategory} loading={vaultLoading} showSearch={false} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
@@ -163,7 +141,7 @@ function SettingsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-                    {pageLoading ? (
+                    {logsLoading ? (
                       Array.from({length: 5}).map((_, i) => (
                         <div key={i} className="flex items-start space-x-4">
                           <Skeleton className="h-10 w-10 rounded-full" />

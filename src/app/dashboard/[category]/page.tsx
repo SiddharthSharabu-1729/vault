@@ -1,12 +1,12 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
 import { EntryCard } from '@/components/dashboard/password-card';
 import { NotesView } from '@/components/dashboard/notes-view';
-import type { VaultEntry, Category } from '@/lib/data';
+import type { VaultEntry } from '@/lib/data';
 import { PlusCircle, Trash2, KeyRound, Lock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,59 +30,32 @@ import {
 import { Header } from '@/components/dashboard/header';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import withAuth from '@/components/withAuth';
-import { useAuth } from '@/contexts/authContext';
-import { getEntries, addEntry, updateEntry, deleteEntry, getCategories, addCategory, deleteCategory } from '@/services/firestore';
-import { addActivityLog } from '@/services/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useVault } from '@/contexts/vaultContext';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function CategoryPage() {
-  const { currentUser } = useAuth();
-  const { toast } = useToast();
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  
+  const { 
+    entries, 
+    categories, 
+    loading,
+    addCategory, 
+    deleteCategory, 
+    addEntry, 
+    updateEntry, 
+    deleteEntry 
+  } = useVault();
 
-  const [entries, setEntries] = useState<VaultEntry[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<VaultEntry[]>([]);
-  const [pageLoading, setPageLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('passwords');
 
   const categorySlug = params.category as string;
-  const currentCategory = categories.find(c => c.slug === categorySlug);
-
-  const fetchAllData = async () => {
-    if (!currentUser) return;
-
-    setPageLoading(true);
-    try {
-      const [userEntries, userCategories] = await Promise.all([
-        getEntries(),
-        getCategories(),
-      ]);
-      setEntries(userEntries);
-      setCategories(userCategories);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Error Fetching Data',
-        description: 'Could not load your vault. Please try again later.',
-      });
-    } finally {
-      setPageLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if(currentUser) {
-        fetchAllData();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  const currentCategory = useMemo(() => categories.find(c => c.slug === categorySlug), [categories, categorySlug]);
 
   useEffect(() => {
     const searchTerm = searchParams.get('q')?.toLowerCase() || '';
@@ -98,97 +71,10 @@ function CategoryPage() {
 
     setFilteredEntries(newFilteredEntries);
   }, [categorySlug, entries, searchParams]);
-  
-  const handleAddCategory = async (newCategoryData: Omit<Category, 'id'>) => {
-    try {
-      await addCategory(newCategoryData);
-      await addActivityLog('Category Created', `New category "${newCategoryData.name}" was added.`);
-      toast({
-          title: 'Category Created',
-          description: `${newCategoryData.name} has been successfully added.`,
-      });
-      await fetchAllData();
-    } catch (error: any) {
-      console.error("Error creating category:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Category Creation Failed',
-        description: error.message || 'Failed to create the new category. Please try again.',
-      });
-    }
-  };
 
-  const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
-    try {
-        await deleteCategory(categoryId);
-        await addActivityLog('Category Deleted', `The "${categoryName}" category and all its entries were deleted.`);
-        toast({
-            title: 'Category Deleted',
-            description: `The "${categoryName}" category has been deleted.`,
-        });
-        router.push('/dashboard/all');
-    } catch (error) {
-        console.error("Error deleting category:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Deletion Failed',
-            description: 'Failed to delete the category. Please try again.',
-        });
-    }
-  };
-
-  const handleAddEntry = async (newEntryData: Omit<VaultEntry, 'id'>, masterPassword: string) => {
-    try {
-      await addEntry(newEntryData, masterPassword);
-      await addActivityLog('Entry Added', `New ${newEntryData.type} entry "${newEntryData.title}" was created.`);
-      toast({
-        title: 'Entry Added',
-        description: `${newEntryData.title} has been saved to your vault.`,
-      });
-      await fetchAllData();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Save Failed',
-        description: 'Could not save the new entry. Please try again.',
-      });
-    }
-  };
-
-  const handleUpdateEntry = async (updatedEntry: VaultEntry, masterPassword?: string) => {
-    try {
-      await updateEntry(updatedEntry.id, updatedEntry, masterPassword);
-      await addActivityLog('Entry Updated', `The ${updatedEntry.type} entry "${updatedEntry.title}" was updated.`);
-       toast({
-        title: 'Entry Updated',
-        description: `${updatedEntry.title} has been successfully updated.`,
-      });
-       await fetchAllData();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: 'Could not update the entry. Please try again.',
-      });
-    }
-  };
-
-  const handleDeleteEntry = async (id: string, title: string, type: string) => {
-    try {
-      await deleteEntry(id);
-      await addActivityLog('Entry Deleted', `The ${type} entry "${title}" was deleted.`);
-       toast({
-        title: 'Entry Deleted',
-        description: `The entry has been removed from your vault.`,
-      });
-      await fetchAllData();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Deletion Failed',
-        description: 'Could not delete the entry. Please try again.',
-      });
-    }
+  const handleDeleteCategoryAndRedirect = async (categoryId: string, categoryName: string) => {
+    await deleteCategory(categoryId, categoryName);
+    router.push('/dashboard/all');
   };
 
   const getPageTitle = () => {
@@ -201,7 +87,7 @@ function CategoryPage() {
   const noteEntries = filteredEntries.filter(e => e.type === 'note');
 
   const renderContent = () => {
-    if (pageLoading) {
+    if (loading) {
         return (
             <div className="space-y-6">
                 <div className="flex justify-center">
@@ -231,8 +117,8 @@ function CategoryPage() {
                             <EntryCard
                                 key={entry.id}
                                 entry={entry}
-                                onUpdateEntry={handleUpdateEntry}
-                                onDeleteEntry={handleDeleteEntry}
+                                onUpdateEntry={updateEntry}
+                                onDeleteEntry={deleteEntry}
                                 categories={categories}
                             />
                         ))}
@@ -253,8 +139,8 @@ function CategoryPage() {
                             <EntryCard
                                 key={entry.id}
                                 entry={entry}
-                                onUpdateEntry={handleUpdateEntry}
-                                onDeleteEntry={handleDeleteEntry}
+                                onUpdateEntry={updateEntry}
+                                onDeleteEntry={deleteEntry}
                                 categories={categories}
                             />
                         ))}
@@ -272,9 +158,9 @@ function CategoryPage() {
                  <NotesView 
                     notes={noteEntries} 
                     categories={categories}
-                    onAddEntry={handleAddEntry}
-                    onUpdateEntry={handleUpdateEntry}
-                    onDeleteEntry={handleDeleteEntry}
+                    onAddEntry={addEntry}
+                    onUpdateEntry={updateEntry}
+                    onDeleteEntry={deleteEntry}
                     activeCategorySlug={categorySlug === 'all' ? undefined : categorySlug}
                 />
             </TabsContent>
@@ -285,9 +171,9 @@ function CategoryPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <Sidebar categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
+      <Sidebar categories={categories} onAddCategory={addCategory} loading={loading} />
       <div className="flex flex-col flex-1 sm:pl-[220px] lg:pl-[280px]">
-        <Header categories={categories} onAddCategory={handleAddCategory} loading={pageLoading} />
+        <Header categories={categories} onAddCategory={addCategory} loading={loading} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
             <Card>
@@ -319,7 +205,7 @@ function CategoryPage() {
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction
-                                        onClick={() => handleDeleteCategory(currentCategory.id, currentCategory.name)}
+                                        onClick={() => handleDeleteCategoryAndRedirect(currentCategory.id, currentCategory.name)}
                                         className="bg-destructive hover:bg-destructive/90"
                                     >
                                         Delete
@@ -329,8 +215,8 @@ function CategoryPage() {
                         </AlertDialog>
                     )}
                     <EntryForm 
-                      onAddEntry={handleAddEntry} 
-                      onUpdateEntry={handleUpdateEntry} 
+                      onAddEntry={addEntry} 
+                      onUpdateEntry={updateEntry} 
                       categories={categories}
                       activeCategorySlug={categorySlug === 'all' ? undefined : categorySlug}
                     >
