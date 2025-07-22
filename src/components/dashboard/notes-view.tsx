@@ -43,7 +43,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     const { toast } = useToast();
     
     useEffect(() => {
-        setTurndownService(new TurndownService());
+        setTurndownService(new TurndownService({ gfm: true }));
     }, []);
 
     // EFFECT 1: Auto-select the first note when the list loads or changes.
