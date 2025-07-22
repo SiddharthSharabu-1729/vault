@@ -29,7 +29,7 @@ interface ChangePasswordFormProps {
 
 export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
   const { toast } = useToast();
-  const { entries } = useVault();
+  const { entries, fetchAllData } = useVault();
 
   const [open, setOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
@@ -96,6 +96,10 @@ export function ChangePasswordForm({ children }: ChangePasswordFormProps) {
         title: 'Password & Vault Updated',
         description: 'Your password has been changed and your vault has been re-encrypted.',
       });
+      
+      // Step 3: Fetch the latest data to ensure UI has the new hashes
+      await fetchAllData();
+
 
       // Auto-close dialogs on success after a delay
       setTimeout(() => {
