@@ -6,7 +6,7 @@ import type { VaultEntry, Category } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Editor } from '@/components/editor';
-import { PlusCircle, Save, Trash2, LoaderCircle } from 'lucide-react';
+import { PlusCircle, Save, Trash2, LoaderCircle, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import TurndownService from 'turndown';
+
 
 interface NotesViewProps {
     notes: VaultEntry[];
@@ -36,8 +38,13 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     const [editorContent, setEditorContent] = useState('');
     const [editorTitle, setEditorTitle] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [turndownService, setTurndownService] = useState<TurndownService | null>(null);
 
     const { toast } = useToast();
+    
+    useEffect(() => {
+        setTurndownService(new TurndownService());
+    }, []);
 
     // EFFECT 1: Auto-select the first note when the list loads or changes.
     // This is the key fix. It reacts to the notes prop changing.
@@ -127,9 +134,71 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
         onDeleteEntry(activeNote.id, activeNote.title, 'note');
     };
 
+    const handleDownloadNote = () => {
+        if (!activeNote || !turndownService) {
+            toast({
+                variant: 'destructive',
+                title: 'Cannot Download Note',
+                description: 'Please select a note to download.',
+            });
+            return;
+        }
+
+        const markdown = turndownService.turndown(editorContent);
+        const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const safeTitle = editorTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.download = `${safeTitle || 'note'}.md`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast({
+            title: 'Note Downloaded',
+            description: `"${editorTitle}" has been downloaded as a Markdown file.`,
+        });
+    }
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[60vh]">
-            {/* Editor Pane (Left Side) */}
+            {/* Note List Pane (Left Side) */}
+             <div className="md:col-span-1 lg:col-span-1 border rounded-lg">
+                <div className="p-4 border-b">
+                    <Button onClick={handleNewNote} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        New Note
+                    </Button>
+                </div>
+                <ScrollArea className="h-[calc(60vh-60px)]">
+                    <div className="p-2">
+                        {notes.length > 0 ? (
+                            notes.map(note => (
+                                <button
+                                    key={note.id}
+                                    onClick={() => handleSelectNote(note.id)}
+                                    className={cn(
+                                        "w-full text-left p-3 rounded-lg mb-1 transition-colors",
+                                        selectedNoteId === note.id ? "bg-muted" : "hover:bg-muted/50"
+                                    )}
+                                >
+                                    <h4 className="font-semibold truncate">{note.title}</h4>
+                                    <p className="text-xs text-muted-foreground truncate"
+                                      dangerouslySetInnerHTML={{ __html: note.notes?.replace(/<[^>]+>/g, ' ').substring(0, 100) || 'No content...' }}
+                                    />
+                                </button>
+                            ))
+                        ) : (
+                           <div className="p-4 text-center">
+                                <p className="text-sm text-muted-foreground">No notes here.</p>
+                           </div>
+                        )}
+                    </div>
+                </ScrollArea>
+            </div>
+
+            {/* Editor Pane (Right Side) */}
             <div className="md:col-span-2 lg:col-span-3 flex flex-col border rounded-lg p-4">
                 {notes.length > 0 || activeNote ? (
                     <>
@@ -146,6 +215,10 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                                 <Button onClick={handleSaveNote} disabled={isSaving || !activeNote}>
                                     {isSaving ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                     {isSaving ? 'Saving...' : 'Save'}
+                                </Button>
+                                 <Button onClick={handleDownloadNote} variant="outline" disabled={!activeNote}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Download
                                 </Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -181,41 +254,6 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
                         </Button>
                     </div>
                 )}
-            </div>
-
-            {/* Note List Pane (Right Side) */}
-            <div className="md:col-span-1 lg:col-span-1 border rounded-lg">
-                <div className="p-4 border-b">
-                    <Button onClick={handleNewNote} className="w-full">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        New Note
-                    </Button>
-                </div>
-                <ScrollArea className="h-[calc(60vh-60px)]">
-                    <div className="p-2">
-                        {notes.length > 0 ? (
-                            notes.map(note => (
-                                <button
-                                    key={note.id}
-                                    onClick={() => handleSelectNote(note.id)}
-                                    className={cn(
-                                        "w-full text-left p-3 rounded-lg mb-1 transition-colors",
-                                        selectedNoteId === note.id ? "bg-muted" : "hover:bg-muted/50"
-                                    )}
-                                >
-                                    <h4 className="font-semibold truncate">{note.title}</h4>
-                                    <p className="text-xs text-muted-foreground truncate"
-                                      dangerouslySetInnerHTML={{ __html: note.notes?.replace(/<[^>]+>/g, ' ').substring(0, 100) || 'No content...' }}
-                                    />
-                                </button>
-                            ))
-                        ) : (
-                           <div className="p-4 text-center">
-                                <p className="text-sm text-muted-foreground">No notes here.</p>
-                           </div>
-                        )}
-                    </div>
-                </ScrollArea>
             </div>
         </div>
     );
