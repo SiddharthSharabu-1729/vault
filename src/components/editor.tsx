@@ -331,7 +331,7 @@ export function Editor({ content, onChange, editable = true }: EditorProps) {
         editorProps: {
             attributes: {
                 class:
-                    'prose prose-sm max-w-none min-h-[45vh] rounded-b-md border-x border-b border-input bg-transparent px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                    'prose prose-sm max-w-none min-h-[45vh] rounded-b-md border-x border-b border-input bg-white text-black px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
             },
         },
         onUpdate({ editor }) {
