@@ -46,6 +46,12 @@ import { Color } from '@tiptap/extension-color'
 import Highlight from '@tiptap/extension-highlight'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Input } from './ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 
 interface EditorProps {
@@ -81,6 +87,36 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
 
     return (
         <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-input bg-transparent p-2">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 px-2" disabled={!editor.isEditable}>
+                        <Baseline className="h-4 w-4 mr-2" />
+                         <span className="text-xs">
+                           { editor.isActive('heading', { level: 1 }) ? 'Heading 1' :
+                             editor.isActive('heading', { level: 2 }) ? 'Heading 2' :
+                             editor.isActive('heading', { level: 3 }) ? 'Heading 3' :
+                           'Paragraph' }
+                        </span>
+                        <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()} disabled={!editor.isEditable}>
+                        <Pilcrow className="h-4 w-4 mr-2" /> Paragraph
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} disabled={!editor.isEditable}>
+                        <Heading1 className="h-4 w-4 mr-2" /> Heading 1
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} disabled={!editor.isEditable}>
+                         <Heading2 className="h-4 w-4 mr-2" /> Heading 2
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} disabled={!editor.isEditable}>
+                         <Heading3 className="h-4 w-4 mr-2" /> Heading 3
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="mx-1 h-6 w-px bg-border" />
             <Button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
@@ -138,7 +174,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                     <div className="flex flex-col gap-1">
                         <Input type="color" className="p-0"
                             onInput={(event: React.ChangeEvent<HTMLInputElement>) => editor.chain().focus().setColor(event.target.value).run()}
-                            value={editor.getAttributes('textStyle').color}
+                            value={editor.getAttributes('textStyle').color || '#000000'}
                         />
                         <Button variant="ghost" className="justify-start p-2 h-auto" onClick={() => editor.chain().focus().unsetColor().run()}>
                             Reset Color
@@ -155,37 +191,6 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 disabled={!editor.isEditable}
             >
                 <Highlighter className="h-4 w-4" />
-            </Button>
-            <div className="mx-1 h-6 w-px bg-border" />
-            <Button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
-                size="icon"
-                aria-label="Heading 1"
-                title="Heading 1"
-                disabled={!editor.isEditable}
-            >
-                <Heading1 className="h-4 w-4" />
-            </Button>
-            <Button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
-                size="icon"
-                aria-label="Heading 2"
-                title="Heading 2"
-                disabled={!editor.isEditable}
-            >
-                <Heading2 className="h-4 w-4" />
-            </Button>
-            <Button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
-                size="icon"
-                aria-label="Heading 3"
-                title="Heading 3"
-                disabled={!editor.isEditable}
-            >
-                <Heading3 className="h-4 w-4" />
             </Button>
             <div className="mx-1 h-6 w-px bg-border" />
             <Button

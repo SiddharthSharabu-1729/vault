@@ -20,8 +20,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import TurndownService from 'turndown';
-import { tables } from 'turndown-plugin-gfm';
 
 
 interface NotesViewProps {
@@ -39,16 +37,9 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     const [editorContent, setEditorContent] = useState('');
     const [editorTitle, setEditorTitle] = useState('');
     const [isSaving, setIsSaving] = useState(false);
-    const [turndownService, setTurndownService] = useState<TurndownService | null>(null);
 
     const { toast } = useToast();
     
-    useEffect(() => {
-        const service = new TurndownService({ headingStyle: 'atx' });
-        service.use(tables);
-        setTurndownService(service);
-    }, []);
-
     // EFFECT 1: Auto-select the first note when the list loads or changes.
     // This is the key fix. It reacts to the notes prop changing.
     useEffect(() => {
@@ -138,7 +129,7 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
     };
 
     const handleDownloadNote = () => {
-        if (!activeNote || !turndownService) {
+        if (!activeNote) {
             toast({
                 variant: 'destructive',
                 title: 'Cannot Download Note',
@@ -147,20 +138,44 @@ export function NotesView({ notes, categories, onAddEntry, onUpdateEntry, onDele
             return;
         }
 
-        const markdown = turndownService.turndown(editorContent);
-        const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${editorTitle}</title>
+                <style>
+                    body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+                    h1, h2, h3, h4, h5, h6 { font-weight: bold; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                    blockquote { border-left: 4px solid #ccc; padding-left: 1rem; margin-left: 0; }
+                    pre { background-color: #f5f5f5; padding: 1rem; border-radius: 4px; }
+                    code { font-family: monospace; }
+                </style>
+            </head>
+            <body>
+                <h1>${editorTitle}</h1>
+                ${editorContent}
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         const safeTitle = editorTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        link.download = `${safeTitle || 'note'}.md`;
+        link.download = `${safeTitle || 'note'}.html`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         toast({
             title: 'Note Downloaded',
-            description: `"${editorTitle}" has been downloaded as a Markdown file.`,
+            description: `"${editorTitle}" has been downloaded as an HTML file.`,
         });
     }
 
