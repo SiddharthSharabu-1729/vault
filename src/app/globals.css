@@ -114,6 +114,11 @@ html[class~="light"] {
     color: inherit;
     font-weight: 600;
   }
+  .prose :where(p) { @apply text-base; }
+  .prose :where(h1) { @apply text-2xl; }
+  .prose :where(h2) { @apply text-xl; }
+  .prose :where(h3) { @apply text-lg; }
+
 
   .prose :where(strong) {
     color: inherit;

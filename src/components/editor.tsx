@@ -22,7 +22,6 @@ import {
     SquareCode,
     ListTodo,
     Table,
-    Baseline,
     Pilcrow,
     ChevronDown,
     AlignCenter,
@@ -90,7 +89,6 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 px-2" disabled={!editor.isEditable}>
-                        <Baseline className="h-4 w-4 mr-2" />
                          <span className="text-xs">
                            { editor.isActive('heading', { level: 1 }) ? 'Heading 1' :
                              editor.isActive('heading', { level: 2 }) ? 'Heading 2' :
