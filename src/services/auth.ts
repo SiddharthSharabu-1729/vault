@@ -14,6 +14,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { createDefaultCategories, addActivityLog as addLog } from './firestore';
 
@@ -23,6 +24,8 @@ import { createDefaultCategories, addActivityLog as addLog } from './firestore';
 export const doCreateUserWithEmailAndPassword = async (email, password) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
+        // Send a verification email to the user.
+        await sendEmailVerification(userCredential.user);
         await createDefaultCategories(userCredential.user.uid);
         await addLog('User Signed Up', `New user account created for ${email}.`, userCredential.user.uid);
     }
@@ -55,6 +58,9 @@ export const doChangePassword = async (currentPassword, newPassword) => {
     // before this function is called. We can proceed directly to updatePassword.
     try {
       await updatePassword(user, newPassword);
+      
+      // NOTE: Firebase automatically sends a secure "Password Changed" notification
+      // email to the user. No additional code is needed for this step.
       
       // Log the successful password change.
       await addLog('Password Changed', 'User successfully changed their password.');

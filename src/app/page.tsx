@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -5,6 +6,7 @@ import { LoginForm } from '@/components/auth/login-form';
 import { useAuth } from '@/contexts/authContext';
 import { ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 
 
 export default function LoginPage() {
@@ -18,7 +20,10 @@ export default function LoginPage() {
   }, [userLoggedIn, router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden relative">
+        <div className="absolute top-4 right-4">
+            <ThemeToggle />
+        </div>
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
