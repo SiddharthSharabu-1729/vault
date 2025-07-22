@@ -73,9 +73,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <Label htmlFor="password">Master Password</Label>
-                <ForgotPasswordForm>
-                    <button type="button" className="text-xs text-primary hover:underline">Forgot Password?</button>
-                </ForgotPasswordForm>
+                <p className="text-xs text-muted-foreground">Your key to the vault.</p>
             </div>
             <div className="relative">
               <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

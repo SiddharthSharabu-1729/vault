@@ -1,6 +1,6 @@
 
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, writeBatch, query, where, getDoc, serverTimestamp, orderBy, collectionGroup } from 'firebase/firestore';
 import type { VaultEntry, ActivityLog, ProgressStep } from '@/lib/data';
 import { defaultCategories } from '@/lib/data';
 import type { Category } from '@/lib/data';
@@ -231,4 +231,28 @@ export async function getActivityLogs(): Promise<ActivityLog[]> {
     const logSnapshot = await getDocs(q);
     
     return logSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as ActivityLog));
+}
+
+// Deletes everything associated with a user account.
+export async function deleteUserAccount(userId: string): Promise<void> {
+  if (!userId) {
+    throw new Error('User ID is required to delete an account.');
+  }
+
+  const batch = writeBatch(db);
+  const collectionsToDelete = ['entries', 'categories', 'activity'];
+
+  for (const collectionName of collectionsToDelete) {
+    const userSubCollection = collection(db, 'users', userId, collectionName);
+    const snapshot = await getDocs(userSubCollection);
+    snapshot.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+  }
+
+  // Delete the top-level user document itself
+  const userDocRef = doc(db, 'users', userId);
+  batch.delete(userDocRef);
+
+  await batch.commit();
 }

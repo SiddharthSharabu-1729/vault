@@ -15,8 +15,9 @@ import {
   reauthenticateWithCredential,
   sendPasswordResetEmail,
   sendEmailVerification,
+  deleteUser,
 } from 'firebase/auth';
-import { createDefaultCategories, addActivityLog as addLog } from './firestore';
+import { createDefaultCategories, addActivityLog as addLog, deleteUserAccount } from './firestore';
 
 // By default, Firebase uses 'local' persistence, which is what we want.
 // It ensures the user stays logged in across page reloads.
@@ -96,6 +97,22 @@ export const doVerifyPassword = async (password: string) => {
     }
 };
 
+export const doDeleteUser = async (password: string) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('User not authenticated.');
+  }
+
+  // Step 1: Re-authenticate the user for this sensitive operation
+  await doVerifyPassword(password);
+
+  // Step 2: Delete all user data from Firestore
+  await deleteUserAccount(user.uid);
+
+  // Step 3: Delete the Firebase Auth user
+  await deleteUser(user);
+};
+
 export const addActivityLog = async (action: string, details: string) => {
     const user = auth.currentUser;
     if (user) {
@@ -125,4 +142,3 @@ export const getFriendlyAuthErrorMessage = (error: any): string => {
         return 'An unexpected error occurred. Please try again.';
     }
 };
-

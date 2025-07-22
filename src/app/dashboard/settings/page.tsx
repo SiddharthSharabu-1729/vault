@@ -20,10 +20,11 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Shield, Clock } from 'lucide-react';
+import { User, Mail, Shield, Clock, ShieldAlert } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChangePasswordForm } from '@/components/dashboard/change-password-form';
+import { DeleteAccountForm } from '@/components/dashboard/delete-account-form';
 
 function SettingsPage() {
   const { currentUser } = useAuth();
@@ -75,7 +76,7 @@ function SettingsPage() {
         <Header categories={categories} onAddCategory={addCategory} loading={vaultLoading} showSearch={false} />
         <main className="flex-1 p-4 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-3 space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Account Profile</CardTitle>
@@ -132,8 +133,6 @@ function SettingsPage() {
                   </ChangePasswordForm>
                 </CardFooter>
               </Card>
-            </div>
-            <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Activity Log</CardTitle>
@@ -171,6 +170,30 @@ function SettingsPage() {
                     )}
                   </div>
                 </CardContent>
+              </Card>
+
+               <Card className="border-destructive/50">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="text-destructive">
+                       <ShieldAlert className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                      <CardDescription>These actions are irreversible. Please proceed with caution.</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Deleting your account will permanently erase your user profile, all vault entries, and all categories associated with it. This data cannot be recovered.
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <DeleteAccountForm>
+                    <Button variant="destructive" disabled={pageLoading}>Delete My Account</Button>
+                  </DeleteAccountForm>
+                </CardFooter>
               </Card>
             </div>
           </div>
