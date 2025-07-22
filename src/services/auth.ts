@@ -3,6 +3,7 @@
 
 import {
   auth,
+  storage,
 } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
@@ -16,7 +17,9 @@ import {
   sendPasswordResetEmail,
   sendEmailVerification,
   deleteUser,
+  updateProfile,
 } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { createDefaultCategories, addActivityLog as addLog, deleteUserAccount } from './firestore';
 
 // By default, Firebase uses 'local' persistence, which is what we want.
@@ -141,4 +144,28 @@ export const getFriendlyAuthErrorMessage = (error: any): string => {
       default:
         return 'An unexpected error occurred. Please try again.';
     }
+};
+
+export const updateUserProfilePicture = async (file: File, userId: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error('User not authenticated.');
+    }
+
+    // Create a storage reference
+    const filePath = `avatars/${userId}/${file.name}`;
+    const storageRef = ref(storage, filePath);
+
+    // Upload the file
+    await uploadBytes(storageRef, file);
+
+    // Get the download URL
+    const photoURL = await getDownloadURL(storageRef);
+
+    // Update the user's profile
+    await updateProfile(user, { photoURL });
+    
+    await addActivityLog('Profile Updated', 'User changed their profile picture.');
+
+    return photoURL;
 };

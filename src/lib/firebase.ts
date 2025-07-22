@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -19,7 +20,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAuRTzJdfYIaF5QwlcGobdKB4swzWKtyBg",
   authDomain: "password-manager-firebase.firebaseapp.com",
   projectId: "password-manager-firebase",
-  storageBucket: "password-manager-firebase.firebasestorage.app",
+  storageBucket: "password-manager-firebase.appspot.com",
   messagingSenderId: "265972501273",
   appId: "1:265972501273:web:41a0eea15d06e44aea9388",
   measurementId: "G-TRNX0VDXKR"
@@ -30,5 +31,6 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { app, auth, db };
+export { app, auth, db, storage };

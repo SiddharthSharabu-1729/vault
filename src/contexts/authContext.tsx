@@ -8,12 +8,14 @@ interface AuthContextType {
   currentUser: User | null;
   userLoggedIn: boolean;
   isInitialized: boolean;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   userLoggedIn: false,
   isInitialized: false,
+  setCurrentUser: () => {},
 });
 
 export function useAuth() {
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentUser,
     userLoggedIn,
     isInitialized,
+    setCurrentUser,
   };
 
   return (
