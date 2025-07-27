@@ -1,6 +1,8 @@
 
 'use client';
 
+export const runtime = 'edge';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { EntryForm } from '@/components/dashboard/password-generator';
