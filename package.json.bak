@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build && next-on-pages",
-    "deploy": "wrangler deploy .vercel/output/static",
+    "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "npm run build && wrangler pages deploy .next"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
