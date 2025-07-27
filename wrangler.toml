@@ -1,2 +1,12 @@
 name = "vault"
-pages_build_output_dir = ".next"
+compatibility_date = "2025-07-27"
+compatibility_flags = ["nodejs_compat"]
+
+main = ".vercel/output/functions/_middleware.mjs"
+
+[site]
+bucket = ".vercel/output/static"
+include = [".vercel/output/static"]
+
+[build]
+command = "npm run build"

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && next-on-pages",
-    "deploy": "wrangler deploy .vercel/output/static",
+    "deploy": "wrangler deploy .vercel/output",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
