@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "build": "npx next-on-pages --experimental-minify && next build",
-  "deploy": "wrangler deploy .vercel/output",
-  "typecheck": "tsc --noEmit",
-  "lint": "next lint"
-},
+    "dev": "next dev --turbopack",
+    "build": "next build && next-on-pages",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npm run build && wrangler pages deploy .next"
+  },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
     "@radix-ui/react-accordion": "^1.2.3",
